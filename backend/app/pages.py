@@ -1016,7 +1016,9 @@ def _sitemap_rows(conn):
 def sitemap_index(conn, base: str) -> str:
     n = 1 if content.thin_noindex() else max(1, math.ceil(_total(conn) / SITEMAP_PAGE))
     items = ["<sitemap><loc>%s/sitemap-main.xml</loc></sitemap>" % base]
-    items += ["<sitemap><loc>%s/sitemap-books-%d.xml</loc></sitemap>" % (base, i) for i in range(1, n + 1)]
+    # the day the last book text was written: search engines then know the book list has changed and read it again
+    last = ("<lastmod>%s</lastmod>" % content.last_book_date()) if content.thin_noindex() and content.last_book_date() else ""
+    items += ["<sitemap><loc>%s/sitemap-books-%d.xml</loc>%s</sitemap>" % (base, i, last) for i in range(1, n + 1)]
     return '<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n%s\n</sitemapindex>\n' % "\n".join(items)
 
 
@@ -1031,11 +1033,12 @@ def sitemap_books(conn, base: str, page: int):
         if not rows:
             return None if page != 1 else '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n</urlset>\n'
     else:
-        rows = conn.execute("SELECT id, title, title_ar, lang, origin FROM books ORDER BY id LIMIT ? OFFSET ?",
+        rows = conn.execute("SELECT id, gid, title, title_ar, lang, origin FROM books ORDER BY id LIMIT ? OFFSET ?",
                             (SITEMAP_PAGE, (page - 1) * SITEMAP_PAGE)).fetchall()
     if not rows:
         return None
     out = []
     for r in rows:
-        out.append("<url><loc>%s%s</loc></url>" % (base, html.escape(canonical_path(r))))
+        day = content.book_date(r["gid"])
+        out.append("<url><loc>%s%s</loc>%s</url>" % (base, html.escape(canonical_path(r)), ("<lastmod>%s</lastmod>" % day) if day else ""))
     return '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n%s\n</urlset>\n' % "\n".join(out)

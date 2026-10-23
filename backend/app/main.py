@@ -63,6 +63,24 @@ def book_json(r) -> dict:
     }
 
 
+class HeadAsGet:
+    """A HEAD request is answered as the GET would be, without the body. The routes are GET only, so HEAD used to fall
+    through to the static files and get a 404 on every page and sitemap (crawlers and link checkers send HEAD)."""
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] != "http" or scope["method"] != "HEAD":
+            return await self.app(scope, receive, send)
+
+        async def headers_only(message):
+            if message["type"] == "http.response.body":
+                message = {"type": "http.response.body", "body": b"", "more_body": message.get("more_body", False)}
+            await send(message)
+        await self.app(dict(scope, method="GET"), receive, headers_only)
+
+
 def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(_app):
@@ -108,6 +126,7 @@ def create_app() -> FastAPI:
     hosts = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()]
     if hosts:  # e.g. ALLOWED_HOSTS=library.example.com: other Host headers are refused
         app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts)
+    app.add_middleware(HeadAsGet)  # outermost: everything inside sees a GET
 
     @app.get("/api/health")
     def health(conn=Depends(get_conn)):

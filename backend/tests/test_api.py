@@ -1073,6 +1073,7 @@ def test_thin_pages_stay_out_of_search_and_sitemaps(client, monkeypatch, tmp_pat
     (d / "authors.json").write_text(_json.dumps({"plato": {"ar": ["سيرة أفلاطون الفيلسوف اليوناني."], "en": ["Plato's life."]}}), encoding="utf-8")
     (d / "categories.json").write_text(_json.dumps({"nov": {"ar": ["نص تصنيف الروايات."], "en": ["The novels text."]}}), encoding="utf-8")
     (d / "home.json").write_text(_json.dumps({"ar": ["المكتبة بكلماتها."], "en": ["The library in its words."]}), encoding="utf-8")
+    (d / "book_dates.json").write_text(_json.dumps({"1122": "2026-10-21"}), encoding="utf-8")  # Hamlet's text was written that day
     (d / "articles" / "01-test.md").write_text(
         "---\nslug: test-article\ntitle: مقال تجريبي\ndescription: وصف المقال\ndate: 2026-10-21\n---\nمقدمة.\n\n## أول\n\n"
         "فقرة فيها [رابط](/book/1) و**كلمة بارزة**.\n\n## ثان\n\n- بند\n- بند آخر\n\n## ثالث\n\n> شطر ... شطر\n\n## رابع\n\n"
@@ -1090,6 +1091,8 @@ def test_thin_pages_stay_out_of_search_and_sitemaps(client, monkeypatch, tmp_pat
     assert 'name="robots" content="noindex,follow"' in macbeth.text and "Catalogue details" in macbeth.text
     books_map = client.get("/sitemap-books-1.xml").text
     assert "/book/1/" in books_map and "/book/2/" not in books_map and client.get("/sitemap-books-2.xml").status_code == 404
+    assert "/book/1/hamlet</loc><lastmod>2026-10-21</lastmod>" in books_map  # the day its text was written
+    assert "sitemap-books-1.xml</loc><lastmod>2026-10-21</lastmod>" in client.get("/sitemap.xml").text
     conn = db.connect()
     conn.execute("UPDATE books SET curated=0 WHERE id=1")  # a described book outside the hand-picked list is listed too
     conn.commit()
@@ -1264,3 +1267,11 @@ def test_author_name():
                        ("384-322 a.C Aristóteles", "Aristóteles"), ("1877-1881 U. S. President", "1877-1881 U. S. President"),
                        ("1890-1894 Boston. Mayor", "1890-1894 Boston. Mayor"), ("1855-", "1855-"), ("Mark Twain", "Mark Twain")):
         assert pages.author_name(raw) == shown
+
+
+def test_head_requests(client):
+    """HEAD gets the GET's answer without its body (the routes are GET only: HEAD used to reach the static files and a 404)."""
+    for path, kind in (("/sitemap.xml", "application/xml"), ("/robots.txt", "text/plain"), ("/book/1/hamlet", "text/html")):
+        r = client.head(path, follow_redirects=False)
+        assert r.status_code == 200 and r.content == b"" and r.headers["content-type"].startswith(kind), path
+    assert client.head("/no-such-page").status_code == 404

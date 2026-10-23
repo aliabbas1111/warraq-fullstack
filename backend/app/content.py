@@ -84,6 +84,15 @@ def short_title(gid) -> str:
     return _load("titles.json", {}).get(str(gid), "") if gid else ""
 
 
+def book_date(gid) -> str:
+    """The day a book's own text was last written or changed (book_dates.json, by Gutenberg number): its sitemap lastmod."""
+    return _load("book_dates.json", {}).get(str(gid), "") if gid else ""
+
+
+def last_book_date() -> str:
+    return max(_load("book_dates.json", {}).values(), default="")
+
+
 def book(row, ui: str) -> dict:
     """{"about": Text, "context": Text} for a book in that language.
     Reads from DB book_descriptions (keyed by gid), falls back to books.json."""
