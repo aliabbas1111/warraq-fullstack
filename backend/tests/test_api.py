@@ -572,7 +572,7 @@ def test_pages_open_in_the_visitors_language(client):
     assert "set-cookie" not in client.get("/?lang=en", headers={"sec-fetch-site": "cross-site"}).headers
     client.cookies.clear()  # the test client kept that choice, as a browser would: start again without one
     privacy = client.get("/privacy").text  # and the privacy policy says so, dated
-    assert "warraq_lang" in privacy and "اختيارك للغة والمظهر" not in privacy and "آخر تحديث: 23 أكتوبر 2026" in privacy
+    assert "warraq_lang" in privacy and "اختيارك للغة والمظهر" not in privacy and "آخر تحديث: 24 أكتوبر 2026" in privacy
     assert "والبرتغالية واليابانية والألمانية" in privacy and "(ar أو en)" not in privacy  # the eight languages
     en_privacy = client.get("/privacy?lang=en").text
     assert "Our site sets the language cookie above" in en_privacy and "Portuguese, Japanese and German" in en_privacy
