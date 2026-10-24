@@ -1181,6 +1181,16 @@ def test_static_files_are_cached(client):
     assert client.get("/").headers["cache-control"] == "no-cache" and client.get("/about").headers["cache-control"] == "no-cache"
 
 
+def test_site_icons_fit_google(client):
+    """Google shows a site's icon in its results only when it is square: the SVG is, and every page also offers a
+    192px PNG (a multiple of 48, as Google asks)."""
+    assert 'viewBox="0 0 48 48"' in client.get("/logo.svg").text
+    for url in ("/", "/about", "/book/1", "/no/such/page"):
+        head = client.get(url, follow_redirects=True).text.split("</head>")[0]
+        assert '<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">' in head, url
+    assert client.get("/icon-192.png").status_code == 200
+
+
 def test_google_analytics_on_every_page(client, monkeypatch):
     loader = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-RLKB7D593G"></script>'
     setup = 'src="/ga.js?v=1" data-id="G-RLKB7D593G"></script>'
