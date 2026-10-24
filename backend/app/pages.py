@@ -524,16 +524,33 @@ _DATES_FIRST = re.compile(r"^(?:(?:[\d?]+\.?|B\.?C\.?E?|A\.?D\.?|C\.?E\.?|[ad]\.
 _BODY = re.compile(r"\w{3}\. [A-Z]")  # "Boston. Mayor": an office, whose dates tell which holder
 
 
+_LEAD = re.compile(r"(?:active|fl\.?|ca\.|circa|approximately|\d{1,2}(?:st|nd|rd|th))$")
+_DATE_WORD = re.compile(r"(?:active|fl\.?|ca\.|circa|approximately|or|cent\.?|centur(?:y|ies)\.?|B\.?C\.?E?\.?|A\.?D\.?|"
+                        r"[\d?]+(?:st|nd|rd|th)?\.?|[\d?]*-(?:approximately|ca\.)?[\d?]*\.?|centur(?:y|ies)-[\d?]+(?:st|nd|rd|th)?)$")
+_OF_PLACE = re.compile(r"of ([A-Z][^\s\d.?]*) ([A-Z][^\s\d.?]*)$")  # "of Hippo Augustine": "Augustine, of Hippo" turned round
+
+
 def author_name(name: str) -> str:
-    """'481? BCE-407 BCE Euripides' -> 'Euripides': the import put the dates of ancient and medieval authors before their
-    names (it strips only four-digit years). Modern dates stay: there they can be an office's term ('1877-1881 U. S. President')."""
-    m = _DATES_FIRST.match(name or "")
-    if m and "-" in m.group(0):
-        dates = m.group(0)
-        old = re.search(r"B\.?C|[ad]\.\s?C", dates) or all(len(y) <= 3 for y in re.findall(r"\d+", dates))
-        if old and not _BODY.search(name[m.end():]):
-            return name[m.end():]
-    return name or ""
+    """'481? BCE-407 BCE Euripides' -> 'Euripides', 'active 14th century Ḥāfiẓ' -> 'Ḥāfiẓ', 'of Hippo Augustine' ->
+    'Augustine of Hippo': the import moved what followed the comma in 'Augustine, of Hippo' or 'Ḥāfiẓ, active 14th century'
+    in front of the name (it strips only four-digit years). Modern dates stay: there they can be an office's term
+    ('1877-1881 U. S. President')."""
+    name = name or ""
+    words = name.split()
+    if words and _LEAD.match(words[0]):  # 'active 1895.', 'approximately 160-approximately 230', '18th cent'
+        while len(words) > 1 and _DATE_WORD.match(words[0]):
+            words.pop(0)
+        if words[0][:1].isalpha() and not _DATE_WORD.match(words[0]):  # 'active 13th century' alone has no name to keep
+            name = " ".join(words)
+    else:
+        m = _DATES_FIRST.match(name)
+        if m and "-" in m.group(0):
+            dates = m.group(0)
+            old = re.search(r"B\.?C|[ad]\.\s?C", dates) or all(len(y) <= 3 for y in re.findall(r"\d+", dates))
+            if old and not _BODY.search(name[m.end():]):
+                name = name[m.end():]
+    m = _OF_PLACE.match(name)
+    return "%s of %s" % (m.group(2), m.group(1)) if m else name
 
 
 def book_author(row, ui: str, authors: dict) -> str:

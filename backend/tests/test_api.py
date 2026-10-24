@@ -1260,12 +1260,17 @@ def test_shown_title():
 
 
 def test_author_name():
-    """The dates the import put before ancient and medieval names go; modern ones, which can be an office's term, stay."""
+    """What the import put before a name goes (ancient and medieval dates, 'active ...', 'of Hippo' turned round);
+    modern dates, which can be an office's term, stay."""
     from app import pages
     for raw, shown in (("481? BCE-407 BCE Euripides", "Euripides"), ("43 B.C.-17 A.D. or 18 A.D Ovid", "Ovid"),
                        ("69?-122? Suetonius", "Suetonius"), ("643 or 644-711 or 712. ʻUmar ibn Abī Rabīʻah", "ʻUmar ibn Abī Rabīʻah"),
                        ("384-322 a.C Aristóteles", "Aristóteles"), ("1877-1881 U. S. President", "1877-1881 U. S. President"),
-                       ("1890-1894 Boston. Mayor", "1890-1894 Boston. Mayor"), ("1855-", "1855-"), ("Mark Twain", "Mark Twain")):
+                       ("1890-1894 Boston. Mayor", "1890-1894 Boston. Mayor"), ("1855-", "1855-"), ("Mark Twain", "Mark Twain"),
+                       ("active 14th century Ḥāfiẓ", "Ḥāfiẓ"), ("approximately 160-approximately 230 Tertullian", "Tertullian"),
+                       ("active 12th century. Mārī ibn Sulaymān", "Mārī ibn Sulaymān"), ("active 13th century", "active 13th century"),
+                       ("of Samosata Lucian", "Lucian of Samosata"), ("of Lérins Vincent", "Vincent of Lérins"),
+                       ("of New York Ross", "of New York Ross"), ("Active Microwave Workshop", "Active Microwave Workshop")):
         assert pages.author_name(raw) == shown
 
 
