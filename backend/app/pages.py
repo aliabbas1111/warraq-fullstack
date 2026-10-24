@@ -652,16 +652,30 @@ def analytics_on() -> bool:
     return os.environ.get("ANALYTICS", "1").strip() != "0"
 
 
+# Google Tag Manager (the site's container), turned off with Analytics; GTM_ID replaces the container.
+GTM_ID = os.environ.get("GTM_ID", "").strip() or "GTM-KSBG6LCR"
+
+
 def analytics_head() -> str:
-    """Google's loader, and the site's own /ga.js in place of Google's inline lines (no inline script: CSP)."""
+    """Google's loader, and the site's own /ga.js and /gtm.js in place of Google's inline lines (no inline script:
+    CSP). Tag Manager comes after ga.js, so its tags start under the consent defaults set there."""
     if not analytics_on():
         return ""
     return ('<script async src="https://www.googletagmanager.com/gtag/js?id=%s"></script>\n'
-            '<script src="/ga.js?v=1" data-id="%s"></script>' % (esc(GA_ID), esc(GA_ID)))
+            '<script src="/ga.js?v=1" data-id="%s"></script>\n'
+            '<script src="/gtm.js?v=1" data-id="%s"></script>' % (esc(GA_ID), esc(GA_ID), esc(GTM_ID)))
+
+
+def gtm_noscript() -> str:
+    """Tag Manager's frame for browsers without JavaScript, right after <body> (Google's own placement)."""
+    if not analytics_on():
+        return ""
+    return ('<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=%s" height="0" width="0" '
+            'style="display:none;visibility:hidden"></iframe></noscript>' % esc(GTM_ID))
 
 
 def site_head() -> str:
-    """What every page carries in its head: AdSense's site tag and Google Analytics."""
+    """What every page carries in its head: AdSense's site tag, Google Analytics and Tag Manager."""
     return adsense_meta() + "\n" + analytics_head()
 
 
@@ -853,6 +867,7 @@ def not_found_html(ui="ar") -> str:
 <style>{css}</style>
 </head>
 <body>
+{gtm_ns}
 <header class="bar"><div class="wrap"><a class="brand" href="/{q}">{logo}<span>{brand}</span></a>
 <nav><a href="/{q}#browse">{all}</a>{menu}</nav></div></header>
 <main class="wrap nf">
@@ -870,7 +885,7 @@ def not_found_html(ui="ar") -> str:
 """.format(ui=ui, dir=t["dir"], h=esc(t["notfound"]), brand=esc(BRAND[ui]), css=CSS, q=q,
            logo=LOGO_SVG, all=esc(t["all"]), menu=lang_menu(ui, lambda c: "/?lang=" + c), p=esc(t["nf_p"]), icon=SEARCH_ICON,
            ph=esc(t["ph"]), search=esc(t["search"]), home=esc(t["nf_home"]), try_=esc(t["nf_try"]), cats=cats,
-           legal=legal_links(ui), note=esc(t["note"]), adsense=site_head())
+           legal=legal_links(ui), note=esc(t["note"]), adsense=site_head(), gtm_ns=gtm_noscript())
 
 
 SHARE_ICONS = {"wa": '<svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" d="M12 3a9 9 0 0 0-7.7 13.6L3 21l4.5-1.2A9 9 0 1 0 12 3z"/><path fill="currentColor" d="M9.1 7.6c.3 0 .5 0 .7.5l.8 1.9c.1.3 0 .5-.1.7l-.6.7c-.1.2-.2.4 0 .6.9 1.5 2 2.6 3.5 3.4.2.1.4.1.6-.1l.8-.9c.2-.2.4-.3.7-.2l1.8.9c.3.1.5.3.5.5 0 .6-.3 1.4-.9 1.8-.7.5-1.6.6-2.5.3-3-.9-5.4-3.2-6.5-6.2-.3-.9-.2-1.9.4-2.6.2-.3.5-.5.8-.5z"/></svg>',
@@ -1074,6 +1089,7 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
 <style>{css}</style>
 </head>
 <body>
+{gtm_ns}
 <header class="bar"><div class="wrap"><a class="brand" href="/">{logo}<span>{brand}</span></a>
 <form class="sbox" action="/#browse" method="get" role="search">{search_icon}<input type="search" name="q" placeholder="{ph}" aria-label="{ph}"><button type="submit">{search}</button></form>
 <nav><a href="/#browse">{all}</a>{menu}</nav></div></header>
@@ -1110,7 +1126,7 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
            alt=esc(title), by=('<p class="by">%s</p>' % esc(author)) if author else "", tags=tags, numbers_html=numbers_html, btns=btns, share=share, share_js=SHARE_JS, facts=facts, rel=rel_html, about=about_html,
            note=esc(t["note"]), legal=legal_links(ui), cv_script=cv_script, like_js=LIKE_JS, wiki_js=WIKI_JS,
            logo=LOGO_SVG, search_icon=SEARCH_ICON, ph=esc(t["ph"]), search=esc(t["search"]),
-           locale=OG_LOCALE[ui], adsense=site_head(),
+           locale=OG_LOCALE[ui], adsense=site_head(), gtm_ns=gtm_noscript(),
            # far from the read buttons (an ad must not invite a mistaken click); only with a nonce to run it
            ad_head=ad_head() if nonce and ads and indexable else "", ad=ad_unit(ui) if nonce and ads and indexable else "",
            robots="index,follow,max-image-preview:large" if indexable else "noindex,follow", facts_h=esc(t["facts_h"]))

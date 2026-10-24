@@ -345,6 +345,7 @@ def _privacy(ui):
 <li>أغلفة الكتب من Open Library ومشروع غوتنبرغ وHathiTrust ومؤسسة هنداوي، ونبذ المؤلفين من ويكيبيديا في صفحات الكتب.</li>
 <li>روابط القراءة تنقلك إلى مواقع خارجية تحكمها سياسات الخصوصية الخاصة بها.</li>
 <li>عبارات البحث في مكتب البحوث يرسلها خادمنا إلى OpenAlex للعثور على الأوراق العلمية.</li>
+<li><b>Google Tag Manager:</b> خدمة من Google تحمّل في صفحاتنا أدوات Google المذكورة هنا، ولا تضع كوكيز خاصة بها.</li>
 <li><b>Google Analytics:</b> لنعرف عدد الزوار والصفحات الأكثر زيارة وكيف يُستخدم الموقع، تجمع Google بيانات الاستخدام (الصفحات التي تزورها، ومدة الزيارة، ونوع الجهاز والمتصفح، والبلد أو المدينة على وجه التقريب) بكوكيز مثل _ga تبقى حتى سنتين. لا نرسل إليها اسمك ولا بريدك. وفي المنطقة الاقتصادية الأوروبية والمملكة المتحدة وسويسرا لا تضع كوكيزها على جهازك إلا بموافقتك، كما تفرض القوانين هناك. يمكنك منعها بتثبيت <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener" target="_blank">إضافة إيقاف Google Analytics</a>، ولمعرفة المزيد راجع <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">سياسة خصوصية Google</a> و<a href="https://policies.google.com/technologies/partner-sites" rel="noopener" target="_blank">كيف تستخدم Google المعلومات من المواقع التي تستعين بخدماتها</a>.</li>
 </ul>
 <h2>5. كيف نستخدم المعلومات</h2>
@@ -388,6 +389,7 @@ def _privacy(ui):
 <li>Book covers from Open Library, Project Gutenberg, HathiTrust and the Hindawi Foundation; author summaries from Wikipedia on book pages.</li>
 <li>Reading links take you to external sites governed by their own privacy policies.</li>
 <li>Research-desk searches are sent by our server to OpenAlex to find papers.</li>
+<li><b>Google Tag Manager:</b> a Google service that loads the Google tools named here on our pages; it sets no cookies of its own.</li>
 <li><b>Google Analytics:</b> to learn how many people visit, which pages they read and how the site is used, Google collects usage data (the pages you visit, visit length, device and browser type, approximate country or city) with cookies such as _ga that last up to two years. We never send it your name or email. In the European Economic Area, the United Kingdom and Switzerland it sets no cookies on your device unless you agree, as the law there requires. You can block it with the <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener" target="_blank">Google Analytics opt-out add-on</a>; see <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">Google's privacy policy</a> and <a href="https://policies.google.com/technologies/partner-sites" rel="noopener" target="_blank">how Google uses information from sites that use its services</a> for more.</li>
 </ul>
 <h2>5. How we use information</h2>
