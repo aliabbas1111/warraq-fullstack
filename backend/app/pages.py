@@ -676,12 +676,28 @@ def legal_links(ui: str) -> str:
         esc(BRAND[ui]), q, esc(ARTICLES_NAME[ui]), "".join('<a href="/%s%s">%s</a>' % (k, q, esc(n)) for k, n in LEGAL[ui]))
 
 
-def site_base(request) -> str:
-    """The public address used in canonical links, sitemaps and robots.txt: SITE_URL, else the domain
-    Railway gives the service (always https), else what the request says."""
+DOMAIN = "al-warraqlibrary.online"  # the library's own address (SITE_URL replaces it)
+PLATFORM_HOSTS = (".onrender.com", ".up.railway.app")  # the addresses hosting platforms give the service
+
+
+def public_url(host: str) -> str:
+    """The library's public address for a request that reached `host`: SITE_URL, else its own domain when the request
+    came through that domain or through the hosting platform's address; empty for any other host (a local copy)."""
     env = os.environ.get("SITE_URL", "").strip().rstrip("/")
     if env:
         return env
+    host = (host or "").split(":")[0].lower()
+    if host == DOMAIN or host.endswith("." + DOMAIN) or host.endswith(PLATFORM_HOSTS):
+        return "https://" + DOMAIN
+    return ""
+
+
+def site_base(request) -> str:
+    """The public address used in canonical links, sitemaps and robots.txt: public_url(), else the domain
+    Railway gives the service (always https), else what the request says."""
+    url = public_url(request.headers.get("host", ""))
+    if url:
+        return url
     railway = os.environ.get("RAILWAY_PUBLIC_DOMAIN", "").strip().strip("/")
     if railway:
         return "https://" + railway
