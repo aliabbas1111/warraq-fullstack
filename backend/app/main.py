@@ -15,7 +15,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.gzip import GZipMiddleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
-from urllib.parse import quote, unquote
+from urllib.parse import quote, unquote, urlsplit
 
 from . import content, covers, db, legal, modern, pages, ranking, research, security, seo, stats, wikisource
 from .catalog import ARABIC_CAT, CATEGORIES
@@ -81,6 +81,31 @@ class HeadAsGet:
         await self.app(dict(scope, method="GET"), receive, headers_only)
 
 
+class PlatformHostRedirect:
+    """Once the library has its own domain in SITE_URL, the address the host gives the service (*.onrender.com,
+    *.up.railway.app) sends every request permanently to the same page there, so search engines and AdSense see one
+    site. /api/health stays on every address for the platform's own checks."""
+
+    PLATFORM = (".onrender.com", ".up.railway.app")
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope["path"] != "/api/health":
+            target = os.environ.get("SITE_URL", "").strip().rstrip("/")
+            host = dict(scope["headers"]).get(b"host", b"").decode("latin-1").split(":")[0].lower()
+            if target and host.endswith(self.PLATFORM) and urlsplit(target).hostname != host:
+                qs = scope.get("query_string", b"")
+                url = target.encode("latin-1") + scope.get("raw_path", scope["path"].encode()) + (b"?" + qs if qs else b"")
+                status = 301 if scope["method"] in ("GET", "HEAD") else 308  # 308 keeps a form's POST a POST
+                await send({"type": "http.response.start", "status": status,
+                            "headers": [(b"location", url), (b"content-length", b"0")]})
+                await send({"type": "http.response.body", "body": b""})
+                return
+        await self.app(scope, receive, send)
+
+
 def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(_app):
@@ -126,7 +151,8 @@ def create_app() -> FastAPI:
     hosts = [h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()]
     if hosts:  # e.g. ALLOWED_HOSTS=library.example.com: other Host headers are refused
         app.add_middleware(TrustedHostMiddleware, allowed_hosts=hosts)
-    app.add_middleware(HeadAsGet)  # outermost: everything inside sees a GET
+    app.add_middleware(HeadAsGet)  # everything inside sees a GET
+    app.add_middleware(PlatformHostRedirect)  # outermost: the platform's address goes to the library's own domain
 
     @app.get("/api/health")
     def health(conn=Depends(get_conn)):

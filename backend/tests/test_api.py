@@ -1329,3 +1329,18 @@ def test_head_requests(client):
         r = client.head(path, follow_redirects=False)
         assert r.status_code == 200 and r.content == b"" and r.headers["content-type"].startswith(kind), path
     assert client.head("/no-such-page").status_code == 404
+
+
+def test_platform_address_goes_to_the_own_domain(client, monkeypatch):
+    """With SITE_URL on the library's own domain, the platform's address redirects every page there, keeping the path
+    and query; its health check, other hosts and a site without SITE_URL are left alone."""
+    platform = {"host": "warraq-fullstack.onrender.com"}
+    monkeypatch.delenv("SITE_URL", raising=False)
+    assert client.get("/robots.txt", headers=platform).status_code == 200  # no domain yet: nothing moves
+    monkeypatch.setenv("SITE_URL", "https://alwarraq.example/")
+    r = client.get("/book/1/%D9%87%D8%A7%D9%85%D9%84%D8%AA?lang=en", headers=platform, follow_redirects=False)
+    assert r.status_code == 301 and r.headers["location"] == "https://alwarraq.example/book/1/%D9%87%D8%A7%D9%85%D9%84%D8%AA?lang=en"
+    assert client.head("/", headers=platform, follow_redirects=False).status_code == 301
+    assert client.post("/contact", headers=platform, follow_redirects=False).status_code == 308  # a form stays a POST
+    assert client.get("/api/health", headers=platform).status_code == 200
+    assert client.get("/robots.txt").status_code == 200  # another address (the test server's) is not the platform's
