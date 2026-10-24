@@ -82,20 +82,18 @@ class HeadAsGet:
 
 
 class PlatformHostRedirect:
-    """Once the library has its own domain in SITE_URL, the address the host gives the service (*.onrender.com,
-    *.up.railway.app) sends every request permanently to the same page there, so search engines and AdSense see one
-    site. /api/health stays on every address for the platform's own checks."""
-
-    PLATFORM = (".onrender.com", ".up.railway.app")
+    """The address the host gives the service (*.onrender.com, *.up.railway.app) sends every request permanently to
+    the same page at the library's own domain (pages.public_url: SITE_URL, else pages.DOMAIN), so search engines and
+    AdSense see one site. /api/health stays on every address for the platform's own checks."""
 
     def __init__(self, app):
         self.app = app
 
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http" and scope["path"] != "/api/health":
-            target = os.environ.get("SITE_URL", "").strip().rstrip("/")
             host = dict(scope["headers"]).get(b"host", b"").decode("latin-1").split(":")[0].lower()
-            if target and host.endswith(self.PLATFORM) and urlsplit(target).hostname != host:
+            target = pages.public_url(host)
+            if target and host.endswith(pages.PLATFORM_HOSTS) and urlsplit(target).hostname != host:
                 qs = scope.get("query_string", b"")
                 url = target.encode("latin-1") + scope.get("raw_path", scope["path"].encode()) + (b"?" + qs if qs else b"")
                 status = 301 if scope["method"] in ("GET", "HEAD") else 308  # 308 keeps a form's POST a POST
