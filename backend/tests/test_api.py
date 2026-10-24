@@ -539,10 +539,8 @@ def test_home_page_words_are_in_its_html(client):
         assert 'data-iph="ph" placeholder="' in page
         # the site-ownership tags, in the head where their services look for them
         head = page.split("</head>")[0]
-        assert '<meta name="google-site-verification"' in head and '<meta name="clckd" content="f8af71787a174ebfe783758035c5e653" />' in head
-    # and Clickadu's verification file at the site's root
-    r = client.get("/f8af71787a174ebfe783758035c5e653.html")
-    assert r.status_code == 200 and r.text.strip() == "f8af71787a174ebfe783758035c5e653"
+        assert '<meta name="google-site-verification"' in head and '<meta name="clckd"' not in head
+    assert client.get("/f8af71787a174ebfe783758035c5e653.html").status_code == 404  # no Clickadu code or file at all
 
 
 def test_pages_open_in_the_visitors_language(client):
