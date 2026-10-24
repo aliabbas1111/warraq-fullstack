@@ -645,7 +645,7 @@ def infeed_meta() -> str:
 
 
 # Google Analytics 4 (the site's property). ANALYTICS=0 turns it off (a test copy); GA_ID replaces the property.
-GA_ID = os.environ.get("GA_ID", "").strip() or "G-RB47QYRPE9"
+GA_ID = os.environ.get("GA_ID", "").strip() or "G-RLKB7D593G"
 
 
 def analytics_on() -> bool:

@@ -1184,8 +1184,8 @@ def test_static_files_are_cached(client):
 
 
 def test_google_analytics_on_every_page(client, monkeypatch):
-    loader = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-RB47QYRPE9"></script>'
-    setup = 'src="/ga.js?v=1" data-id="G-RB47QYRPE9"></script>'
+    loader = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-RLKB7D593G"></script>'
+    setup = 'src="/ga.js?v=1" data-id="G-RLKB7D593G"></script>'
     for url in ("/", "/?lang=en", "/category/nov", "/author/shakespeare", "/book/1", "/about", "/privacy", "/terms",
                 "/contact", "/no/such/page"):
         r = client.get(url, follow_redirects=True)
