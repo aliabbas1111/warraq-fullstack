@@ -1332,18 +1332,12 @@ def test_head_requests(client):
 
 
 def test_platform_address_goes_to_the_own_domain(client, monkeypatch):
-    """The platform's address redirects every page to the library's domain (pages.DOMAIN, or SITE_URL), keeping the
-    path and query; the domain itself, the platform's health check and other hosts are left alone."""
-    from app import pages
-    platform, own = {"host": "warraq-fullstack.onrender.com"}, {"host": pages.DOMAIN}
+    """With SITE_URL on the library's own domain, the platform's address redirects every page there, keeping the path
+    and query; its health check, other hosts and a site without SITE_URL are left alone."""
+    platform = {"host": "warraq-fullstack.onrender.com"}
     monkeypatch.delenv("SITE_URL", raising=False)
-    r = client.get("/about?lang=en", headers=platform, follow_redirects=False)
-    assert r.status_code == 301 and r.headers["location"] == "https://al-warraqlibrary.online/about?lang=en"
-    home = client.get("/", headers=own)  # the domain answers itself and names itself everywhere
-    assert home.status_code == 200 and '<link rel="canonical" href="https://al-warraqlibrary.online/">' in home.text
-    assert "Sitemap: https://al-warraqlibrary.online/sitemap.xml" in client.get("/robots.txt", headers=own).text
-    assert "Sitemap: http://testserver/sitemap.xml" in client.get("/robots.txt").text  # a local copy keeps its own address
-    monkeypatch.setenv("SITE_URL", "https://alwarraq.example/")  # an explicit address wins
+    assert client.get("/robots.txt", headers=platform).status_code == 200  # no domain yet: nothing moves
+    monkeypatch.setenv("SITE_URL", "https://alwarraq.example/")
     r = client.get("/book/1/%D9%87%D8%A7%D9%85%D9%84%D8%AA?lang=en", headers=platform, follow_redirects=False)
     assert r.status_code == 301 and r.headers["location"] == "https://alwarraq.example/book/1/%D9%87%D8%A7%D9%85%D9%84%D8%AA?lang=en"
     assert client.head("/", headers=platform, follow_redirects=False).status_code == 301
