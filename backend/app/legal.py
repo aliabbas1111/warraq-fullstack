@@ -18,9 +18,9 @@ from urllib.parse import parse_qs
 from . import content, stats
 from .pages import BRAND, LEGAL, T, UI_LANGS, esc, lang_q
 
-# each page its own date: both changed when the site stopped showing ads
-UPDATED = {"privacy": {"ar": "23 أكتوبر 2026", "en": "23 October 2026", "zh": "2026年10月23日", "fr": "23 octobre 2026",
-                       "es": "23 de octubre de 2026", "pt": "23 de outubro de 2026", "ja": "2026年10月23日", "de": "23. Oktober 2026"},
+# each page its own date: terms changed when the site stopped showing ads, privacy the day after (Google's partner-sites page)
+UPDATED = {"privacy": {"ar": "24 أكتوبر 2026", "en": "24 October 2026", "zh": "2026年10月24日", "fr": "24 octobre 2026",
+                       "es": "24 de octubre de 2026", "pt": "24 de outubro de 2026", "ja": "2026年10月24日", "de": "24. Oktober 2026"},
            "terms": {"ar": "23 أكتوبر 2026", "en": "23 October 2026", "zh": "2026年10月23日", "fr": "23 octobre 2026",
                      "es": "23 de octubre de 2026", "pt": "23 de outubro de 2026", "ja": "2026年10月23日", "de": "23. Oktober 2026"}}
 EMAIL_DEFAULT = "alwarraqibrary@gmail.com"  # the library's mailbox
@@ -264,17 +264,18 @@ def _about(ui, n):
 <h2>من نحن</h2>
 <p>سمّينا المكتبة باسم «الورّاقين»، نسّاخ الكتب وباعتها في بغداد العباسية، الذين جعلوا سوق الورّاقين ملتقى للعلماء والقرّاء. وعلى خطاهم نريد أن يصل كل قارئ عربي إلى الكتاب المجاني بسهولة، من هاتفه أو حاسوبه، بلا اشتراك ولا تسجيل.</p>
 <h2>رسالتنا</h2>
-<p>أن نجمع تراث الإنسانية المتاح للجميع في مكان واحد وبلغة عربية سهلة: كتاب تبحث عنه بالعنوان أو باسم المؤلف، مصنّف في أبواب واضحة، بغلافه ونبذة عنه، ومعه رابط مباشر لقراءته كاملاً.</p>
+<p>أن نجمع تراث الإنسانية المتاح للجميع في مكان واحد وبلغة عربية سهلة: كتاب تبحث عنه بالعنوان أو باسم المؤلف، مصنّف في أبواب واضحة، بغلافه ورابط مباشر لقراءته كاملاً، ومع أشهر الكتب تعريف نكتبه بأنفسنا يعينك على الاختيار.</p>
 <h2>ماذا تجد في المكتبة</h2>
 <ul>
 <li><b>{num("books")} كتاب</b> في الملك العام بـ{num("langs")} لغة، من مشروع غوتنبرغ وHathiTrust وOpen Library وأرشيف الإنترنت.</li>
+<li><b>تعريفات كتبناها بأنفسنا</b> لـ{num("described")} من أشهر الكتب: عمّ يدور الكتاب، ومن مؤلفه، ولماذا ما زال يُقرأ، وأي طبعة أو ترجمة يوصلك إليها الموقع، ونضيف إليها باستمرار. ومعها <a href="/articles{lang_q(ui)}">مقالات بالعربية</a>: أدلة قراءة وتعريف بالكتّاب وفصول من تاريخ الكتاب العربي.</li>
 <li><b>ديوان العرب:</b> {num("poems")} قصيدة لكبار الشعراء من الجاهلية إلى العصر الحديث، من ويكي مصدر.</li>
 <li><b>{num("authors")} مؤلف</b> و{num("cats")} تصنيفاً، من الرواية والشعر إلى التاريخ والفلسفة والطب.</li>
 <li><b>{num("modern")} كتاب عربي حديث</b> (روايات وتنمية بشرية وغيرها): ما نشرته «صفحات» (مؤسسة هنداوي) مجاناً بإذن أصحابه تقرؤه هناك كاملاً، وما حقوقه محفوظة نعرض بيانات فهرسته ونوصلك إلى صفحته في Open Library.</li>
 <li><b>مكتب البحوث:</b> أوراق علمية طبية وهندسية مجانية الوصول، نبحث عنها في OpenAlex.</li>
 </ul>
 <h2>كيف نعمل</h2>
-<p>لا نستضيف ملفات الكتب ولا نبيعها. نجمع بيانات الفهرسة من مصادر مفتوحة، ونرتّبها ونصنّفها ونعرّب عناوين الكتب المشهورة وأسماء مؤلفيها، ثم نوصلك إلى صفحة القراءة في المصدر الأصلي. القراءة مجانية تماماً.</p>
+<p>لا نستضيف ملفات الكتب ولا نبيعها. نجمع بيانات الفهرسة من مصادر مفتوحة، ونرتّبها ونصنّفها ونعرّب عناوين الكتب المشهورة وأسماء مؤلفيها، ونكتب لأشهرها تعريفات أصيلة لا ننقلها من غيرنا، ثم نوصلك إلى صفحة القراءة في المصدر الأصلي. القراءة مجانية تماماً.</p>
 <h2>مبادئنا</h2>
 <ul>
 <li><b>مجانية دائماً</b> للقارئ، بلا حسابات ولا اشتراكات.</li>
@@ -288,17 +289,18 @@ def _about(ui, n):
 <h2>Who we are</h2>
 <p>The library is named after the <i>warraqin</i>, the copyists and booksellers of Abbasid Baghdad whose market was a meeting place for scholars and readers. In their footsteps, we want every reader to reach free books easily, from a phone or a computer, with no subscription and no sign-up.</p>
 <h2>Our mission</h2>
-<p>To gather humanity's free heritage in one place, in plain Arabic and English: books you can search by title or author, sorted into clear categories, with covers and short descriptions, and a direct link to read them in full.</p>
+<p>To gather humanity's free heritage in one place, in plain Arabic and English: books you can search by title or author, sorted into clear categories, with their covers and a direct link to read them in full, and, for the best-known books, an introduction written by our own editors to help you choose.</p>
 <h2>What you will find</h2>
 <ul>
 <li><b>{num("books")} public-domain books</b> in {num("langs")} languages, from Project Gutenberg, HathiTrust, Open Library and the Internet Archive.</li>
+<li><b>Introductions written by our editors</b> for {num("described")} of the best-known books: what each book is about, who wrote it, why it is still read, and which edition or translation the library points to, with more added all the time. Beside them, <a href="/articles{lang_q(ui)}">articles in Arabic</a>: reading guides, introductions to writers and chapters from the history of the Arabic book.</li>
 <li><b>Diwan of the Arabs:</b> {num("poems")} poems by the great Arab poets, from pre-Islamic times to the modern era, from Arabic Wikisource.</li>
 <li><b>{num("authors")} authors</b> and {num("cats")} categories, from novels and poetry to history, philosophy and medicine.</li>
 <li><b>{num("modern")} modern Arabic books</b> (novels, self-development and more): those Safahat (Hindawi Foundation) publishes free with their owners' permission are read in full there; for books under copyright we show the catalogue record and link to their Open Library page.</li>
 <li><b>The research desk:</b> free-to-read medical and engineering papers, found through OpenAlex.</li>
 </ul>
 <h2>How it works</h2>
-<p>We do not host or sell book files. We gather catalogue data from open sources, sort and categorise it, translate the titles of famous books and the names of their authors, and send you to the reading page at the original source. Reading is completely free.</p>
+<p>We do not host or sell book files. We gather catalogue data from open sources, sort and categorise it, translate the titles of famous books and the names of their authors, write original introductions to the best-known ones, and send you to the reading page at the original source. Reading is completely free.</p>
 <h2>Our principles</h2>
 <ul>
 <li><b>Always free</b> for readers: no accounts, no subscriptions.</li>
@@ -331,7 +333,7 @@ def _privacy(ui):
 <li>أغلفة الكتب من Open Library ومشروع غوتنبرغ وHathiTrust ومؤسسة هنداوي، ونبذ المؤلفين من ويكيبيديا في صفحات الكتب.</li>
 <li>روابط القراءة تنقلك إلى مواقع خارجية تحكمها سياسات الخصوصية الخاصة بها.</li>
 <li>عبارات البحث في مكتب البحوث يرسلها خادمنا إلى OpenAlex للعثور على الأوراق العلمية.</li>
-<li><b>Google Analytics:</b> لنعرف عدد الزوار والصفحات الأكثر زيارة وكيف يُستخدم الموقع، تجمع Google بيانات الاستخدام (الصفحات التي تزورها، ومدة الزيارة، ونوع الجهاز والمتصفح، والبلد أو المدينة على وجه التقريب) بكوكيز مثل _ga تبقى حتى سنتين. لا نرسل إليها اسمك ولا بريدك. وفي المنطقة الاقتصادية الأوروبية والمملكة المتحدة وسويسرا لا تضع كوكيزها على جهازك، كما تفرض القوانين هناك. يمكنك منعها بتثبيت <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener" target="_blank">إضافة إيقاف Google Analytics</a>، ولمعرفة المزيد راجع <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">سياسة خصوصية Google</a>.</li>
+<li><b>Google Analytics:</b> لنعرف عدد الزوار والصفحات الأكثر زيارة وكيف يُستخدم الموقع، تجمع Google بيانات الاستخدام (الصفحات التي تزورها، ومدة الزيارة، ونوع الجهاز والمتصفح، والبلد أو المدينة على وجه التقريب) بكوكيز مثل _ga تبقى حتى سنتين. لا نرسل إليها اسمك ولا بريدك. وفي المنطقة الاقتصادية الأوروبية والمملكة المتحدة وسويسرا لا تضع كوكيزها على جهازك، كما تفرض القوانين هناك. يمكنك منعها بتثبيت <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener" target="_blank">إضافة إيقاف Google Analytics</a>، ولمعرفة المزيد راجع <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">سياسة خصوصية Google</a> و<a href="https://policies.google.com/technologies/partner-sites" rel="noopener" target="_blank">كيف تستخدم Google المعلومات من المواقع التي تستعين بخدماتها</a>.</li>
 </ul>
 <h2>4. كيف نستخدم المعلومات</h2>
 <p>لتشغيل الموقع وتحسينه ومعرفة كيف يُستخدم، ولعرض الكتب الأكثر مشاهدة والعبارات الأكثر بحثاً، وللرد على رسائلك، ولحماية الموقع من الإساءة. لا نبيع بياناتك، ولا نشاركها إلا مع مزوّدي الخدمات المذكورين أعلاه، أو إذا ألزمنا القانون بذلك.</p>
@@ -365,7 +367,7 @@ def _privacy(ui):
 <li>Book covers from Open Library, Project Gutenberg, HathiTrust and the Hindawi Foundation; author summaries from Wikipedia on book pages.</li>
 <li>Reading links take you to external sites governed by their own privacy policies.</li>
 <li>Research-desk searches are sent by our server to OpenAlex to find papers.</li>
-<li><b>Google Analytics:</b> to learn how many people visit, which pages they read and how the site is used, Google collects usage data (the pages you visit, visit length, device and browser type, approximate country or city) with cookies such as _ga that last up to two years. We never send it your name or email. In the European Economic Area, the United Kingdom and Switzerland it sets no cookies on your device, as the law there requires. You can block it with the <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener" target="_blank">Google Analytics opt-out add-on</a>; see <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">Google's privacy policy</a> for more.</li>
+<li><b>Google Analytics:</b> to learn how many people visit, which pages they read and how the site is used, Google collects usage data (the pages you visit, visit length, device and browser type, approximate country or city) with cookies such as _ga that last up to two years. We never send it your name or email. In the European Economic Area, the United Kingdom and Switzerland it sets no cookies on your device, as the law there requires. You can block it with the <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener" target="_blank">Google Analytics opt-out add-on</a>; see <a href="https://policies.google.com/privacy" rel="noopener" target="_blank">Google's privacy policy</a> and <a href="https://policies.google.com/technologies/partner-sites" rel="noopener" target="_blank">how Google uses information from sites that use its services</a> for more.</li>
 </ul>
 <h2>4. How we use information</h2>
 <p>To run and improve the site and learn how it is used, to show the most viewed books and most searched phrases, to reply to your messages and to protect the site from abuse. We do not sell your data, and we share it only with the service providers above, or when the law requires it.</p>

@@ -634,7 +634,7 @@ def test_the_eight_languages(client):
     assert 'href="/takedown?lang=de&amp;u=' in de and '<meta property="og:locale" content="de_DE">' in de
     # the long legal texts are written in Arabic and English: the others show the English one, and say so
     es = client.get("/privacy?lang=es").text
-    assert "Última actualización: 23 de octubre de 2026" in es and legal.L["es"]["en_only"] in es and '<div lang="en">' in es
+    assert "Última actualización: 24 de octubre de 2026" in es and legal.L["es"]["en_only"] in es and '<div lang="en">' in es
     assert "Política de privacidad" in es and "Our site sets the language cookie above" in es
     ja = client.get("/contact?lang=ja").text
     assert "お名前" in ja and "一般的な質問" in ja and 'action="/contact?lang=ja"' in ja and legal.L["ja"]["en_only"] not in ja
@@ -817,6 +817,8 @@ def test_about_privacy_terms_contact(tmp_path, monkeypatch):
         assert "Google Analytics" in c.get("/privacy").text and "gaoptout" in c.get("/privacy?lang=en").text
         assert 'href="mailto:alwarraqibrary@gmail.com"' in c.get("/contact").text
         assert "386" in c.get("/about?lang=en").text  # the numbers come from the catalogue
+        assert "Introductions written by our editors" in c.get("/about?lang=en").text  # the library's own writing, counted
+        assert all("policies.google.com/technologies/partner-sites" in c.get("/privacy" + q).text for q in ("", "?lang=en"))
         # every footer links to the four pages, and the sitemap lists them
         assert 'href="/terms"' in c.get("/").text and 'href="/privacy"' in c.get("/category/poe").text
         assert 'href="/contact' in c.get("/book/1").text  # an English book's page links to /contact?lang=en

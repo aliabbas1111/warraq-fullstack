@@ -403,7 +403,8 @@ def create_app() -> FastAPI:
         m = meta(conn)
         n = {"books": m["total"], "poems": m["poem_total"], "authors": m["author_total"], "langs": m["lang_total"],
              "cats": sum(1 for c in m["categories"] if c["count"]),
-             "modern": conn.execute("SELECT COUNT(*) FROM books WHERE curated IN (?, ?)", modern.KINDS).fetchone()[0]}
+             "modern": conn.execute("SELECT COUNT(*) FROM books WHERE curated IN (?, ?)", modern.KINDS).fetchone()[0],
+             "described": conn.execute("SELECT COUNT(*) FROM book_descriptions WHERE COALESCE(en, '') <> ''").fetchone()[0]}
         return HTMLResponse(legal.page_html("about", pages.site_base(request), _ui(request, lang), numbers=n))
 
     @app.get("/privacy", include_in_schema=False)
