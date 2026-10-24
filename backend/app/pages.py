@@ -528,6 +528,8 @@ _LEAD = re.compile(r"(?:active|fl\.?|ca\.|circa|approximately|\d{1,2}(?:st|nd|rd
 _DATE_WORD = re.compile(r"(?:active|fl\.?|ca\.|circa|approximately|or|cent\.?|centur(?:y|ies)\.?|B\.?C\.?E?\.?|A\.?D\.?|"
                         r"[\d?]+(?:st|nd|rd|th)?\.?|[\d?]*-(?:approximately|ca\.)?[\d?]*\.?|centur(?:y|ies)-[\d?]+(?:st|nd|rd|th)?)$")
 _OF_PLACE = re.compile(r"of ([A-Z][^\s\d.?]*) ([A-Z][^\s\d.?]*)$")  # "of Hippo Augustine": "Augustine, of Hippo" turned round
+_RULER = re.compile(r"((?:Emperor|Empress|King|Queen|Sultan|Shah|Tsar|Czar) of (?:the )?)(.+)$")  # "Emperor of Hindustan Babur"
+_TWO_WORD_PLACE = {"Great", "Britain", "Islands", "Isles", "Kingdom", "Sicilies"}  # "Great Britain", "the Hawaiian Islands"
 
 
 def author_name(name: str) -> str:
@@ -535,7 +537,8 @@ def author_name(name: str) -> str:
     'Augustine of Hippo': the import moved what followed the comma in 'Augustine, of Hippo' or 'Ḥāfiẓ, active 14th century'
     in front of the name (it strips only four-digit years). Modern dates stay unless they span a lifetime: a short span
     can be an office's term ('1877-1881 U. S. President'). A peer's title left the surname twice: 'Alfred Tennyson
-    Tennyson' (from 'Tennyson, Alfred Tennyson, Baron')."""
+    Tennyson' (from 'Tennyson, Alfred Tennyson, Baron'), and a ruler's went first: 'Emperor of the French Napoleon I'
+    -> 'Napoleon I, Emperor of the French'."""
     name = name or ""
     words = name.split()
     if words and _LEAD.match(words[0]):  # 'active 1895.', 'approximately 160-approximately 230', '18th cent'
@@ -555,6 +558,12 @@ def author_name(name: str) -> str:
     words = name.split()
     if len(words) >= 3 and words[-1] == words[-2]:
         name = " ".join(words[:-1])
+    m = _RULER.match(name)
+    if m:
+        rest = m.group(2).split()
+        n = 2 if len(rest) > 2 and (rest[0] in _TWO_WORD_PLACE or rest[1] in _TWO_WORD_PLACE) else 1
+        if len(rest) > n and rest[0][:1].isupper():
+            return "%s, %s%s" % (" ".join(rest[n:]), m.group(1), " ".join(rest[:n]))
     m = _OF_PLACE.match(name)
     return "%s of %s" % (m.group(2), m.group(1)) if m else name
 

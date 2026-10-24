@@ -1261,7 +1261,7 @@ def test_shown_title():
 
 def test_author_name():
     """What the import put before a name goes (ancient and medieval dates, a lifetime's dates, 'active ...', 'of Hippo'
-    turned round, a peer's doubled surname); a short modern span, which can be an office's term, stays."""
+    turned round, a peer's doubled surname, a ruler's title put first); a short modern span, which can be an office's term, stays."""
     from app import pages
     for raw, shown in (("481? BCE-407 BCE Euripides", "Euripides"), ("43 B.C.-17 A.D. or 18 A.D Ovid", "Ovid"),
                        ("69?-122? Suetonius", "Suetonius"), ("643 or 644-711 or 712. ʻUmar ibn Abī Rabīʻah", "ʻUmar ibn Abī Rabīʻah"),
@@ -1273,7 +1273,9 @@ def test_author_name():
                        ("of New York Ross", "of New York Ross"), ("Active Microwave Workshop", "Active Microwave Workshop"),
                        ("1833-1913 Eiríkr Magnússon", "Eiríkr Magnússon"), ("1825-1916 E. V. B.", "E. V. B."),
                        ("Alfred Tennyson Tennyson", "Alfred Tennyson"), ("Edward Bulwer Lytton Lytton", "Edward Bulwer Lytton"),
-                       ("Duran Duran", "Duran Duran")):
+                       ("Duran Duran", "Duran Duran"), ("Emperor of the French Napoleon I", "Napoleon I, Emperor of the French"),
+                       ("Queen of Great Britain Victoria", "Victoria, Queen of Great Britain"),
+                       ("Emperor of China Ming Xuanzong", "Ming Xuanzong, Emperor of China"), ("Queen of Hearts", "Queen of Hearts")):
         assert pages.author_name(raw) == shown
 
 
