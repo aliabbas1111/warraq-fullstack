@@ -573,14 +573,13 @@ def test_pages_open_in_the_visitors_language(client):
     client.cookies.clear()  # the test client kept that choice, as a browser would: start again without one
     privacy = client.get("/privacy").text  # and the privacy policy says so, dated
     assert "warraq_lang" in privacy and "اختيارك للغة والمظهر" not in privacy and "آخر تحديث: 24 أكتوبر 2026" in privacy
-    assert "والبرتغالية واليابانية والألمانية" in privacy and "(ar أو en)" not in privacy  # the eight languages
+    assert "<p>نعرض إعلانات من خلال Google AdSense" in privacy and "قد نعرض إعلانات" not in privacy
+    assert "والبرتغالية واليابانية والألمانية" in privacy and "(ar أو en)" not in privacy  # the eight languages, dated
     en_privacy = client.get("/privacy?lang=en").text
     assert "Our site sets the language cookie above" in en_privacy and "Portuguese, Japanese and German" in en_privacy
-    terms = client.get("/terms").text  # the site shows no ads: the policy says so and the terms no longer speak of them
-    assert "آخر تحديث: 23 أكتوبر 2026" in terms and "الإعلانات</h2>" not in terms
-    assert "Advertising</h2>" not in client.get("/terms?lang=en").text
-    assert "لا يعرض الموقع أي إعلانات" in privacy and "The site shows no ads" in en_privacy
-    assert not any(w in page for page in (privacy, en_privacy) for w in ("AdSense", "bauval", "aboutads", "settings/ads"))
+    terms = client.get("/terms").text  # the terms changed when the ads came back
+    assert "آخر تحديث: 24 أكتوبر 2026" in terms and "عبر Google AdSense" in terms
+    assert "bauval.org" not in privacy and "bauval.org" not in en_privacy  # Google AdSense is the only network
 
 
 def test_the_eight_languages(client):
@@ -635,7 +634,7 @@ def test_the_eight_languages(client):
     # the long legal texts are written in Arabic and English: the others show the English one, and say so
     es = client.get("/privacy?lang=es").text
     assert "Última actualización: 24 de octubre de 2026" in es and legal.L["es"]["en_only"] in es and '<div lang="en">' in es
-    assert "Política de privacidad" in es and "Our site sets the language cookie above" in es
+    assert "Política de privacidad" in es and "Third-party vendors, including Google" in es
     ja = client.get("/contact?lang=ja").text
     assert "お名前" in ja and "一般的な質問" in ja and 'action="/contact?lang=ja"' in ja and legal.L["ja"]["en_only"] not in ja
     # choosing a language inside the site keeps it
@@ -814,10 +813,11 @@ def test_about_privacy_terms_contact(tmp_path, monkeypatch):
             for q in ("", "?lang=en"):
                 r = c.get("/" + p + q)
                 assert r.status_code == 200 and '<nav class="legal"' in r.text, (p, q)
-        assert "Google Analytics" in c.get("/privacy").text and "gaoptout" in c.get("/privacy?lang=en").text
+        assert "Google AdSense" in c.get("/privacy").text and "aboutads.info" in c.get("/privacy?lang=en").text
         assert 'href="mailto:alwarraqibrary@gmail.com"' in c.get("/contact").text
         assert "386" in c.get("/about?lang=en").text  # the numbers come from the catalogue
-        assert "Introductions written by our editors" in c.get("/about?lang=en").text  # the library's own writing, counted
+        assert "Our own introductions" in c.get("/about?lang=en").text and "Ali Abbas Taher" in c.get("/about?lang=en").text
+        assert "علي عباس طاهر" in c.get("/about").text  # who runs the library
         assert all("policies.google.com/technologies/partner-sites" in c.get("/privacy" + q).text for q in ("", "?lang=en"))
         # every footer links to the four pages, and the sitemap lists them
         assert 'href="/terms"' in c.get("/").text and 'href="/privacy"' in c.get("/category/poe").text
@@ -886,7 +886,7 @@ def test_share_buttons_poems_and_404(client):
     assert r.status_code == 404 and r.headers["content-type"].startswith("application/json")
     assert client.get("/api/books", params={"limit": 0}).status_code == 422
     robots = client.get("/robots.txt").text
-    assert robots.startswith("User-agent: *\nAllow: /\n") and "Mediapartners" not in robots
+    assert robots.startswith("User-agent: Mediapartners-Google\nAllow: /\n")
 
 
 def test_books_without_a_reading_link_are_removed(client, tmp_path):
@@ -1036,23 +1036,51 @@ def test_wikisource_books_are_dropped_poems_stay(client, tmp_path):
     conn.close()
 
 
-def test_no_ads_anywhere(client):
-    """The site shows no ads: no ad network's tag, loader or unit on any page, no ads.txt, and the strict policies."""
-    for url in ("/", "/?lang=fr", "/book/1", "/category/nov", "/category/poe", "/author/shakespeare", "/articles", "/about",
-                "/privacy", "/terms", "/contact", "/no/such/page"):
+def test_adsense_tag_on_every_page_and_ads_txt(client):
+    tag = '<meta name="google-adsense-account" content="ca-pub-7058063023261152">'
+    for url in ("/", "/?lang=en", "/book/1", "/category/poe", "/author/shakespeare", "/about", "/privacy", "/terms",
+                "/contact", "/no/such/page"):
         r = client.get(url, follow_redirects=True)
-        for mark in ("google-adsense-account", "adsbygoogle", "googlesyndication", 'class="ad"', 'class="ad ', "warraq-infeed",
-                     "bauval.org/", "<!--SEO:"):
-            assert mark not in r.text, (url, mark)
+        assert tag in r.text, url
+        head = r.text.split("</head>")[0]
+        assert tag in head, url  # inside <head>, where AdSense looks for it
+    r = client.get("/ads.txt")
+    assert r.status_code == 200 and r.text == "google.com, pub-7058063023261152, DIRECT, f08c47fec0942fa0\n"
+
+
+def test_ad_units_on_content_pages_only(client, monkeypatch):
+    monkeypatch.setenv("THIN_NOINDEX", "0")  # every book page shows its ad (the thin rule has its own test)
+    unit = 'data-ad-slot="1844690351"'
+    loader = "pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7058063023261152"
+    for url, n in (("/", 2), ("/?lang=en", 2), ("/category/poe", 1), ("/author/shakespeare", 1), ("/book/1", 1)):
+        r = client.get(url, follow_redirects=True)
         csp = r.headers["content-security-policy"]
-        assert "'strict-dynamic'" not in csp and "frame-src" not in csp and "frame-ancestors 'none'" in csp, url
-        assert r.headers["cross-origin-opener-policy"] == "same-origin", url
-    assert "script-src 'self' https://www.googletagmanager.com;" in client.get("/category/nov").headers["content-security-policy"]
-    assert client.get("/ads.txt").status_code == 404
+        nonce = csp.split("'nonce-")[1].split("'")[0]
+        assert r.text.count(unit) == n and r.text.split("</head>")[0].count(loader) == 1, url
+        assert "'strict-dynamic'" in csp and "frame-src https:" in csp and "frame-ancestors 'none'" in csp, url
+        assert r.text.count("<script") == r.text.count('<script nonce="%s"' % nonce), url  # the only scripts that run
+        assert r.headers["cross-origin-opener-policy"] == "same-origin-allow-popups"  # an ad's click may open its page
+    book = client.get("/book/1", follow_redirects=True).text
+    assert book.index('class="btns"') < book.index("</article>") < book.index('class="ad"')  # well below the read buttons
+    # the in-feed unit: one item of a long book list, after the 8th book; the home page's script is told its name
+    feed = 'data-ad-slot="6915772378"'
+    cat = client.get("/category/nov").text
+    items = cat.split('<ul class="rel">')[1].split("</ul>")[0].split("<li")[1:]
+    assert cat.count(feed) == 1 and 'class="infeed"' in items[8] and len(items) >= 13
+    assert '<meta name="warraq-infeed" content="ca-pub-7058063023261152|6915772378|-gg+g-1f-3w+ci">' in client.get("/").text
+    for url in ("/about", "/privacy", "/terms", "/contact", "/no/such/page"):  # no ads beside thin or legal content
+        r = client.get(url)
+        assert unit not in r.text and loader not in r.text and "'strict-dynamic'" not in r.headers["content-security-policy"], url
+    monkeypatch.setenv("ADS", "0")  # a test copy of the site: no ads, the strict policies as before
+    r = client.get("/")
+    assert unit not in r.text and loader not in r.text and "script-src 'self'" in r.headers["content-security-policy"]
+    assert "warraq-infeed" not in r.text and "6915772378" not in client.get("/category/nov").text
+    r = client.get("/book/1", follow_redirects=True)
+    assert unit not in r.text and "'strict-dynamic'" not in r.headers["content-security-policy"]
 
 
-def test_thin_pages_stay_out_of_search_and_sitemaps(client, monkeypatch, tmp_path):
-    """THIN_NOINDEX (on by default): a catalogue record with no words of its own is noindex and unlisted;
+def test_thin_pages_stay_out_of_search_sitemaps_and_ads(client, monkeypatch, tmp_path):
+    """THIN_NOINDEX (on by default): a catalogue record with no words of its own is noindex, unlisted and ad-free;
     the library's own texts make a page whole: book texts, author biographies, category texts, articles."""
     import json as _json
     from app import content, db
@@ -1082,15 +1110,17 @@ def test_thin_pages_stay_out_of_search_and_sitemaps(client, monkeypatch, tmp_pat
         "خاتمة <script>alert(1)</script> [سيئ](javascript:alert(1)).", encoding="utf-8")
     monkeypatch.setattr(content, "DIR", str(d))
     content._cache.clear()
+    unit = 'data-ad-slot="1844690351"'
 
-    # a book with a text of its own: indexed, with its text, and a description taken from it
+    # a book with a text of its own: indexed, with its ad, its text, and a description taken from it
     hamlet = client.get("/book/1", follow_redirects=True).text
-    assert 'name="robots" content="index,follow' in hamlet
+    assert 'name="robots" content="index,follow' in hamlet and unit in hamlet
     assert "Context and significance" in hamlet and '<meta name="description" content="Hamlet, the prince of Denmark' in hamlet
     assert '<a href="/book/2?lang=en">Macbeth</a>' in hamlet and "<title>Hamlet by William Shakespeare | Al-Warraq Library</title>" in hamlet
-    # a catalogue record alone: out of search results
+    # a catalogue record alone: out of search results and ads, under the strict policy
     macbeth = client.get("/book/2", follow_redirects=True)
-    assert 'name="robots" content="noindex,follow"' in macbeth.text and "Catalogue details" in macbeth.text
+    assert 'name="robots" content="noindex,follow"' in macbeth.text and unit not in macbeth.text
+    assert "'strict-dynamic'" not in macbeth.headers["content-security-policy"] and "Catalogue details" in macbeth.text
     books_map = client.get("/sitemap-books-1.xml").text
     assert "/book/1/" in books_map and "/book/2/" not in books_map and client.get("/sitemap-books-2.xml").status_code == 404
     assert "/book/1/hamlet</loc><lastmod>2026-10-21</lastmod>" in books_map  # the day its text was written
@@ -1104,9 +1134,9 @@ def test_thin_pages_stay_out_of_search_and_sitemaps(client, monkeypatch, tmp_pat
     conn.close()
     # authors: a biography makes the page whole; a short list of titles does not
     plato = client.get("/author/plato").text
-    assert "سيرة أفلاطون" in plato and 'name="robots"' not in plato
+    assert "سيرة أفلاطون" in plato and 'name="robots"' not in plato and unit in plato
     kafka = client.get("/author/kafka").text
-    assert 'name="robots" content="noindex,follow"' in kafka
+    assert 'name="robots" content="noindex,follow"' in kafka and unit not in kafka
     main_map = client.get("/sitemap-main.xml").text
     assert "/author/plato</loc>" in main_map and "/author/kafka</loc>" not in main_map and "/articles/test-article</loc>" in main_map
     # a category's own text, the home page's own words and articles; a search result page is not indexed
@@ -1114,17 +1144,17 @@ def test_thin_pages_stay_out_of_search_and_sitemaps(client, monkeypatch, tmp_pat
     home = client.get("/").text
     assert "المكتبة بكلماتها" in home and 'href="/articles/test-article"' in home and 'name="robots" content="index,follow"' in home
     assert 'name="robots" content="noindex,follow"' in client.get("/?q=hamlet").text
-    # the articles: written in Arabic, Article data, nothing unsafe passes from the text
+    # the articles: written in Arabic, Article data, two ads, nothing unsafe passes from the text
     page = client.get("/articles/test-article")
     a = page.text
-    assert page.status_code == 200 and "<h1>مقال تجريبي</h1>" in a and '"Article"' in a
+    assert page.status_code == 200 and "<h1>مقال تجريبي</h1>" in a and '"Article"' in a and a.count(unit) == 2
     assert '<a href="/book/1">رابط</a>' in a and "<strong>كلمة بارزة</strong>" in a and "<li>بند آخر</li>" in a and 'class="verse"' in a
     assert "<script>alert" not in a and 'href="javascript' not in a
     assert '<link rel="canonical" href="http://testserver/articles/test-article">' in client.get("/articles/test-article?lang=en").text
     assert client.get("/articles/nope").status_code == 404 and 'href="/articles/test-article"' in client.get("/articles").text
-    # THIN_NOINDEX off: every book page indexed, as before
+    # THIN_NOINDEX off: every book page indexed and with ads, as before
     monkeypatch.setenv("THIN_NOINDEX", "0")
-    assert 'name="robots" content="index,follow' in client.get("/book/2", follow_redirects=True).text
+    assert unit in client.get("/book/2", follow_redirects=True).text
 
 
 def test_takedown_requests(client):
@@ -1144,7 +1174,7 @@ def test_takedown_requests(client):
     assert bad.status_code == 400 and "20" in bad.text and "&lt;b&gt;x&lt;/b&gt;" in bad.text
     conn.close()
     privacy = client.get("/privacy").text
-    assert "warraq_lang" in privacy and 'href="https://tools.google.com/dlpage/gaoptout"' in privacy and 'href="mailto:alwarraqibrary@gmail.com"' in privacy
+    assert "warraq_lang" in privacy and 'href="https://www.google.com/settings/ads"' in privacy and 'href="mailto:alwarraqibrary@gmail.com"' in privacy
 
 
 def test_static_files_are_cached(client):
@@ -1162,7 +1192,7 @@ def test_google_analytics_on_every_page(client, monkeypatch):
         head = r.text.split("</head>")[0]
         csp = r.headers["content-security-policy"]
         assert head.count("googletagmanager.com/gtag/js") == 1 and setup in head, url  # once, in the head
-        if "'nonce-" in csp:  # the book pages: both scripts carry the nonce
+        if "'nonce-" in csp:  # the pages with ads: both scripts carry the nonce
             nonce = csp.split("'nonce-")[1].split("'")[0]
             assert r.text.count("<script") == r.text.count('<script nonce="%s"' % nonce), url
         else:  # the strict policy lets Google's loader in and its reports out, and nothing inline
