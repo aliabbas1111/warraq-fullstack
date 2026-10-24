@@ -533,8 +533,9 @@ _OF_PLACE = re.compile(r"of ([A-Z][^\s\d.?]*) ([A-Z][^\s\d.?]*)$")  # "of Hippo 
 def author_name(name: str) -> str:
     """'481? BCE-407 BCE Euripides' -> 'Euripides', 'active 14th century Ḥāfiẓ' -> 'Ḥāfiẓ', 'of Hippo Augustine' ->
     'Augustine of Hippo': the import moved what followed the comma in 'Augustine, of Hippo' or 'Ḥāfiẓ, active 14th century'
-    in front of the name (it strips only four-digit years). Modern dates stay: there they can be an office's term
-    ('1877-1881 U. S. President')."""
+    in front of the name (it strips only four-digit years). Modern dates stay unless they span a lifetime: a short span
+    can be an office's term ('1877-1881 U. S. President'). A peer's title left the surname twice: 'Alfred Tennyson
+    Tennyson' (from 'Tennyson, Alfred Tennyson, Baron')."""
     name = name or ""
     words = name.split()
     if words and _LEAD.match(words[0]):  # 'active 1895.', 'approximately 160-approximately 230', '18th cent'
@@ -546,9 +547,14 @@ def author_name(name: str) -> str:
         m = _DATES_FIRST.match(name)
         if m and "-" in m.group(0):
             dates = m.group(0)
-            old = re.search(r"B\.?C|[ad]\.\s?C", dates) or all(len(y) <= 3 for y in re.findall(r"\d+", dates))
-            if old and not _BODY.search(name[m.end():]):
+            years = [int(y) for y in re.findall(r"\d+", dates)]
+            old = re.search(r"B\.?C|[ad]\.\s?C", dates) or all(y < 1000 for y in years)
+            life = len(years) == 2 and 20 <= years[1] - years[0] <= 110  # '1833-1913 Eiríkr Magnússon'
+            if (old or life) and not _BODY.search(name[m.end():]):
                 name = name[m.end():]
+    words = name.split()
+    if len(words) >= 3 and words[-1] == words[-2]:
+        name = " ".join(words[:-1])
     m = _OF_PLACE.match(name)
     return "%s of %s" % (m.group(2), m.group(1)) if m else name
 
@@ -850,8 +856,9 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
         book["author"] = {"@type": "Person", "name": author}
         if row["author_key"]:
             book["author"]["url"] = base + "/author/" + quote(row["author_key"])
-        if row["author_en"] and row["author_en"] != author:
-            book["author"]["alternateName"] = row["author_en"]
+        alt = author_name(row["author_en"])
+        if alt and alt != author:
+            book["author"]["alternateName"] = alt
     if covers:
         book["image"] = covers[0]
     if numbers[1]:
@@ -934,7 +941,7 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
     elif author:
         about_html += ('<section class="about" id="aa" hidden data-name="%s" data-alt="%s" data-ui="%s" data-src="%s"><h2>%s</h2><p id="aaT"></p>'
                        '<small><a id="aaL" href="#" target="_blank" rel="noopener">%s</a></small></section>'
-                       % (esc(author), esc(row["author_en"] or ""), ui, esc(t["wiki"]), esc(t["about_author"]), esc(t["wiki"])))
+                       % (esc(author), esc(author_name(row["author_en"])), ui, esc(t["wiki"]), esc(t["about_author"]), esc(t["wiki"])))
     cv_script = (
         "<script>(function(){var im=document.getElementById('cvimg');if(!im)return;var src=%s;var i=0;"
             "function done(ok){if(ok){im.classList.add('ok');}else next();}"

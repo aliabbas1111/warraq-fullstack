@@ -1260,8 +1260,8 @@ def test_shown_title():
 
 
 def test_author_name():
-    """What the import put before a name goes (ancient and medieval dates, 'active ...', 'of Hippo' turned round);
-    modern dates, which can be an office's term, stay."""
+    """What the import put before a name goes (ancient and medieval dates, a lifetime's dates, 'active ...', 'of Hippo'
+    turned round, a peer's doubled surname); a short modern span, which can be an office's term, stays."""
     from app import pages
     for raw, shown in (("481? BCE-407 BCE Euripides", "Euripides"), ("43 B.C.-17 A.D. or 18 A.D Ovid", "Ovid"),
                        ("69?-122? Suetonius", "Suetonius"), ("643 or 644-711 or 712. ʻUmar ibn Abī Rabīʻah", "ʻUmar ibn Abī Rabīʻah"),
@@ -1270,8 +1270,23 @@ def test_author_name():
                        ("active 14th century Ḥāfiẓ", "Ḥāfiẓ"), ("approximately 160-approximately 230 Tertullian", "Tertullian"),
                        ("active 12th century. Mārī ibn Sulaymān", "Mārī ibn Sulaymān"), ("active 13th century", "active 13th century"),
                        ("of Samosata Lucian", "Lucian of Samosata"), ("of Lérins Vincent", "Vincent of Lérins"),
-                       ("of New York Ross", "of New York Ross"), ("Active Microwave Workshop", "Active Microwave Workshop")):
+                       ("of New York Ross", "of New York Ross"), ("Active Microwave Workshop", "Active Microwave Workshop"),
+                       ("1833-1913 Eiríkr Magnússon", "Eiríkr Magnússon"), ("1825-1916 E. V. B.", "E. V. B."),
+                       ("Alfred Tennyson Tennyson", "Alfred Tennyson"), ("Edward Bulwer Lytton Lytton", "Edward Bulwer Lytton"),
+                       ("Duran Duran", "Duran Duran")):
         assert pages.author_name(raw) == shown
+
+
+def test_book_page_cleans_author(client):
+    """The page's structured data and its Wikipedia lookup get the cleaned name, not what the import left."""
+    from app import db
+    conn = db.connect()
+    cur = conn.execute("INSERT INTO books(title,title_ar,author_key,author_en,author_ar,cat,origin,lang,curated,ord,search,ext)"
+                       " VALUES('Poems','','','active 14th century Ḥāfiẓ','','poe','w','en',4,5,'poems','X2')")
+    conn.commit()
+    html = client.get("/book/%d?lang=en" % cur.lastrowid).text
+    conn.close()
+    assert "Ḥāfiẓ" in html and "active 14th" not in html
 
 
 def test_head_requests(client):
