@@ -18,8 +18,8 @@ from urllib.parse import quote
 from . import content, legal, modern
 from .wikisource import WS_KIND
 from .catalog import ARABIC_CAT, CATEGORIES
-from .pages import (ARTICLES_NAME, BRAND, CSS, INFEED_AT, INFEED_MIN, LOGO_SVG, OG_LOCALE, SEARCH_ICON, T, UI_LANG_SHORT, UI_LANGS,
-                    _authors, ad_head, ad_unit, analytics_head, book_author, book_title, canonical_path, esc, infeed_meta, infeed_unit,
+from .pages import (ARTICLES_NAME, BRAND, CSS, LOGO_SVG, OG_LOCALE, SEARCH_ICON, T, UI_LANG_SHORT, UI_LANGS,
+                    _authors, ad_head, analytics_head, book_author, book_title, canonical_path, esc,
                     gtm_noscript, lang_menu, lang_q, legal_links, own_text, shown_title, site_head)
 
 FOUNDER = {"@type": "Person", "name": "Ali Abbas Taher", "alternateName": "علي عباس طاهر"}  # who runs the library
@@ -295,7 +295,6 @@ def home_html(frontend_dir: str, base: str, ui: str = "ar", nonce: str = "", sea
         verification_meta(),
         analytics_head(),
         ad_head() if nonce else "",
-        infeed_meta() if nonce else "",
         _ld({"@context": "https://schema.org", "@graph": [
             {"@type": "WebSite", "@id": base + "/#site", "url": base + "/", "name": BRAND["ar"], "alternateName": BRAND["en"],
              "inLanguage": list(UI_LANGS), "publisher": {"@id": base + "/#org"},
@@ -306,9 +305,8 @@ def home_html(frontend_dir: str, base: str, ui: str = "ar", nonce: str = "", sea
         ]}),
     ])
     links = " ".join('<a href="/category/%s%s">%s</a>' % (k, lang_q(ui), esc(v[ui])) for k, v in CATEGORIES.items())
-    ad = '<div class="wrap">%s</div>' % ad_unit(ui) if nonce and ad_unit(ui) else ""
     page = (_home_template(frontend_dir, ui).replace("<!--SEO:HEAD-->", head).replace("<!--SEO:BODY-->", gtm_noscript()).replace("<!--SEO:CATS-->", links)
-            .replace("<!--SEO:AD-->", ad).replace("<!--SEO:INTRO-->", _home_intro(ui)))
+            .replace("<!--SEO:INTRO-->", _home_intro(ui)))
     if search:  # /?q=...: the same page showing search results, not a page of its own for search engines
         page = page.replace('<meta name="robots" content="index,follow">', '<meta name="robots" content="noindex,follow">', 1)
     return with_nonce(page, nonce)
@@ -363,7 +361,7 @@ def _shell(ui, base, path, title, desc, body, ld, page=1, extra_q="", extra_css=
            robots=('<meta name="robots" content="%s">\n' % esc(robots)) if robots else "",
            brand=esc(BRAND[ui]), base=esc(base), ld=ld, css=CSS, extra=EXTRA_CSS + extra_css, logo=LOGO_SVG, icon=SEARCH_ICON,
            ph=esc(t["ph"]), search=esc(t["search"]), all=esc(t["all"]), menu=lang_menu(ui, lambda c: path + "?lang=" + c),
-           body=body.replace("<!--SEO:AD-->", ad_unit(ui) if nonce else "").replace("<!--SEO:FEED-->", infeed_unit(ui) if nonce else ""),
+           body=body,
            note=esc(t["note"]), legal=legal_links(ui), adsense=site_head(), gtm_ns=gtm_noscript(), ad_head=ad_head() if nonce else "")
 
 
@@ -373,8 +371,6 @@ def _book_list(conn, rows, ui) -> str:
     for r in rows:
         a = book_author(r, ui, authors)
         items.append('<li><a href="%s">%s%s</a></li>' % (esc(canonical_path(r)), esc(shown_title(r, ui)), ("<small>%s</small>" % esc(a)) if a else ""))
-    if len(items) >= INFEED_MIN:  # the in-feed ad's place, filled by _shell on pages that show ads
-        items.insert(INFEED_AT, "<!--SEO:FEED-->")
     return '<ul class="rel">%s</ul>' % "".join(items)
 
 
@@ -418,7 +414,7 @@ def category_page(conn, key: str, base: str, ui: str = "ar", page: int = 1, nonc
     chips = "".join('<a href="/category/%s%s"%s>%s</a>' % (k, lang_q(ui), ' aria-current="page"' if k == key else "", esc(v[ui]))
                     for k, v in CATEGORIES.items())
     body = ('<p class="crumbs"><a href="/">%s</a> / %s</p><h1>%s</h1><p class="desc">%s <a href="/?cat=%s#browse">%s</a></p>'
-            '<nav class="chips" aria-label="%s">%s</nav>%s<!--SEO:AD-->%s%s'
+            '<nav class="chips" aria-label="%s">%s</nav>%s%s%s'
             % (esc(T[ui]["home"]), esc(name), esc(s["cat_h"].format(c=name)), esc(desc), key, esc(s["open"]), esc(s["cats"]), chips,
                _text_section(s["cat_about"], content.category(key, ui), ui) if page == 1 else "",
                _book_list(conn, rows, ui), _pager(path, ui, page, pages)))
@@ -448,7 +444,7 @@ def author_page(conn, key: str, base: str, ui: str = "ar", page: int = 1, nonce:
     chips = "".join('<a href="/author/%s%s">%s</a>' % (quote(o["key"]), lang_q(ui), esc(o["ar"] if ui == "ar" else o["en"]))
                     for o in others if o["key"] != key)
     bio = content.author(key, ui)
-    body = ('<p class="crumbs"><a href="/">%s</a> / %s</p><h1>%s</h1><p class="desc">%s <a href="/?ak=%s#browse">%s</a></p>%s<!--SEO:AD-->%s%s'
+    body = ('<p class="crumbs"><a href="/">%s</a> / %s</p><h1>%s</h1><p class="desc">%s <a href="/?ak=%s#browse">%s</a></p>%s%s%s'
             '<h2>%s</h2><nav class="chips">%s</nav>'
             % (esc(T[ui]["home"]), esc(name), esc(s["auth_h"].format(a=name)), esc(desc), esc(quote(key)), esc(s["open"]),
                _text_section(s["auth_about"], bio, ui) if page == 1 else "",
@@ -508,7 +504,7 @@ def articles_page(base: str, ui: str, nonce: str = "") -> str:
         % (esc(a["slug"]), q, esc(a["title"]), esc(a.get("description", "")), esc(a.get("date", "")),
            esc(s["minutes"].format(n=_minutes(a["words"])))) for a in arts)
     name = ARTICLES_NAME[ui]
-    body = ('<p class="crumbs"><a href="/%s">%s</a> / %s</p><h1>%s</h1><p class="desc">%s %s</p><ul class="arts">%s</ul><!--SEO:AD-->'
+    body = ('<p class="crumbs"><a href="/%s">%s</a> / %s</p><h1>%s</h1><p class="desc">%s %s</p><ul class="arts">%s</ul>'
             % (q, esc(T[ui]["home"]), esc(name), esc(name), esc(s["arts_lead"]), esc(s["arts_lang"]), items))
     ld = _ld({"@context": "https://schema.org", "@graph": [
         {"@type": "CollectionPage", "name": s["arts_t"], "description": s["arts_d"], "url": base + "/articles", "inLanguage": "ar",
@@ -526,16 +522,12 @@ def article_page(slug: str, base: str, ui: str, nonce: str = ""):
         return None
     s, q = S[ui], lang_q(ui)
     html_body = content.render(a["body"])
-    # one ad after the second section, one at the end: well apart from the title, three at most on the page
-    parts = html_body.split("<h2>")
-    if len(parts) > 3:
-        html_body = "<h2>".join(parts[:3]) + "<!--SEO:AD--><h2>" + "<h2>".join(parts[3:])
     others = [o for o in content.articles() if o["slug"] != slug][:5]
     more = ('<section class="intro"><h2>%s</h2><ul class="arts">%s</ul></section>' % (esc(s["more_arts"]), "".join(
         '<li><a href="/articles/%s%s" lang="ar">%s</a></li>' % (esc(o["slug"]), q, esc(o["title"])) for o in others))) if others else ""
     url = base + "/articles/" + slug
     body = ('<p class="crumbs"><a href="/%s">%s</a> / <a href="/articles%s">%s</a> / <span lang="ar">%s</span></p>'
-            '<article class="post" lang="ar" dir="rtl"><h1>%s</h1><p class="meta">%s · %s</p><p class="lead">%s</p>%s</article><!--SEO:AD-->%s'
+            '<article class="post" lang="ar" dir="rtl"><h1>%s</h1><p class="meta">%s · %s</p><p class="lead">%s</p>%s</article>%s'
             % (q, esc(T[ui]["home"]), q, esc(ARTICLES_NAME[ui]), esc(a["title"]), esc(a["title"]), esc(a.get("date", "")),
                esc(S["ar"]["minutes"].format(n=_minutes(a["words"]))), esc(a.get("description", "")), html_body, more))
     org = {"@type": "Organization", "@id": base + "/#org", "name": BRAND["ar"], "url": base + "/",

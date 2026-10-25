@@ -1318,33 +1318,6 @@
     }
     let rendered = 0;
 
-    // The AdSense in-feed unit among the results (the server names it in a meta tag, only where ads are shown):
-    // one per search, made once and put back in place when the same list is drawn again, so that switching the
-    // language never reloads an ad on its own.
-    const FEED = (() => { const m = document.querySelector('meta[name="warraq-infeed"]');
-        const p = m ? (m.getAttribute('content') || '').split('|') : [];
-        return p.length === 3 && p[0] && p[1] ? { client: p[0], slot: p[1], layout: p[2] } : null; })();
-    const FEED_AT = 8; // after the 8th book, in a list of 12 or more
-    let feedAd = null,
-        feedKey = '';
-
-    function placeFeedAd(grid) {
-        if (!FEED || S.loading || S.err || S.items.length < FEED_AT + 4) return;
-        const at = grid.children[FEED_AT - 1];
-        if (!at) return;
-        const key = [S.q.trim(), S.cat, S.org, S.ak, S.au, S.bl, S.sort].join('\u0001');
-        const fresh = !feedAd || key !== feedKey;
-        if (fresh) {
-            feedAd = document.createElement('div');
-            feedAd.className = 'infeed';
-            feedKey = key;
-        }
-        feedAd.setAttribute('aria-label', tr('ad'));
-        if (fresh) feedAd.innerHTML = '<span class="ad-l">' + esc(tr('ad')) + '</span><ins class="adsbygoogle" style="display:block" data-ad-format="fluid" data-ad-layout-key="' + esc(FEED.layout) + '" data-ad-client="' + esc(FEED.client) + '" data-ad-slot="' + esc(FEED.slot) + '"></ins>';
-        else feedAd.querySelector('.ad-l').textContent = tr('ad');
-        at.after(feedAd);
-        if (fresh) try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
-    }
 
     function renderResults(append) {
         const chips = [];
@@ -1375,8 +1348,7 @@
 
         const grid = $('#grid');
         if (!append) { grid.innerHTML = S.items.map(card).join('');
-            rendered = S.items.length;
-            placeFeedAd(grid); } else if (S.items.length > rendered) { grid.insertAdjacentHTML('beforeend', S.items.slice(rendered).map(card).join(''));
+            rendered = S.items.length; } else if (S.items.length > rendered) { grid.insertAdjacentHTML('beforeend', S.items.slice(rendered).map(card).join(''));
             rendered = S.items.length; }
         watchCovers(grid);
 

@@ -419,8 +419,6 @@ footer p{margin:0}
 .nf-cats a{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:5px 14px;text-decoration:none;color:var(--ink);font-size:.9rem}
 .nf-cats a:hover{border-color:var(--brand-2);color:var(--brand)}
 @media (max-width:640px){.book{grid-template-columns:1fr;justify-items:center}.cover{width:200px}.book>div{width:100%}dl{grid-template-columns:1fr}}
-.ad{margin:28px 0;text-align:center}.ad .ad-l{display:none;font-size:11px;letter-spacing:.04em;color:var(--muted);margin-bottom:6px}.ad:has(ins[data-ad-status=filled]) .ad-l{display:block}.ad:has(ins[data-ad-status=unfilled]){display:none}ins.adsbygoogle[data-ad-status=unfilled]{display:none!important}
-.rel li.infeed{grid-column:1/-1;background:none;border:0;transform:none;text-align:center}.infeed .ad-l{display:none;font-size:11px;letter-spacing:.04em;color:var(--muted);margin-bottom:6px}.infeed:has(ins[data-ad-status=filled]) .ad-l{display:block}.infeed:has(ins[data-ad-status=unfilled]){display:none}
 .book h2.facts-h{font-size:1rem;margin:18px 0 6px;color:var(--muted);font-weight:600}.rights.pd{background:var(--soft);color:var(--ink)}.rights a{font-weight:600}.crumbs span{color:var(--muted)}.about p+p{margin-top:.6em}.about small a{font-weight:600}
 """
 
@@ -588,60 +586,20 @@ def adsense_meta() -> str:
     return '<meta name="google-adsense-account" content="%s">' % esc(ADSENSE_ACCOUNT)
 
 
-# The AdSense display unit ("Dhdj"). Only on pages with real content (home, categories, authors, books): never
-# on the 404, contact or legal pages. ADS=0 turns ads off (a test copy); ADSENSE_SLOT replaces the unit.
-AD_SLOT = os.environ.get("ADSENSE_SLOT", "").strip() or "1844690351"
-# Google permits "Advertisements" or "Sponsored links" only (or the same word in the page's language)
-AD_LABEL = {"ar": "إعلانات", "en": "Advertisements", "zh": "广告", "fr": "Publicités", "es": "Anuncios", "pt": "Anúncios",
-            "ja": "広告", "de": "Anzeigen"}
-
-
 def ads_on() -> bool:
+    """ADS=0 takes AdSense's code off every page (a test copy of the site)."""
     return os.environ.get("ADS", "1").strip() != "0"
 
 
 def ad_head() -> str:
-    """The AdSense loader, once per page with ads (it carries the response's nonce like every script there)."""
+    """AdSense's own code, on the pages with content of their own (home, categories, authors, articles, described
+    books; never the 404, contact or legal pages): Google verifies the site by it and, once the account allows,
+    places its Auto ads. The pages hold no ad units of their own. It carries the response's nonce like every script
+    there."""
     if not ads_on():
         return ""
     return ('<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=%s" '
             'crossorigin="anonymous"></script>' % esc(ADSENSE_ACCOUNT))
-
-
-def ad_unit(ui: str = "ar") -> str:
-    """One responsive ad, labelled as such once Google fills it (an unfilled one takes no room)."""
-    if not ads_on():
-        return ""
-    label = AD_LABEL.get(ui, AD_LABEL["ar"])
-    return ('<aside class="ad" aria-label="%s"><span class="ad-l">%s</span>'
-            '<ins class="adsbygoogle" style="display:block" data-ad-client="%s" data-ad-slot="%s" data-ad-format="auto" '
-            'data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({});</script></aside>'
-            % (label, label, esc(ADSENSE_ACCOUNT), esc(AD_SLOT)))
-
-
-# The in-feed unit: drawn like one of the books, inside a list of at least INFEED_MIN of them, after the
-# INFEED_AT-th (server pages: the category and author lists; the home page: its search results, through app.js)
-INFEED_SLOT = os.environ.get("ADSENSE_INFEED_SLOT", "").strip() or "6915772378"
-INFEED_LAYOUT = "-gg+g-1f-3w+ci"
-INFEED_AT, INFEED_MIN = 8, 12
-
-
-def infeed_unit(ui: str = "ar") -> str:
-    """The in-feed ad as an item of a server-rendered list (its script gets the page's nonce)."""
-    if not ads_on():
-        return ""
-    label = AD_LABEL.get(ui, AD_LABEL["ar"])
-    return ('<li class="infeed" aria-label="%s"><span class="ad-l">%s</span><ins class="adsbygoogle" style="display:block" '
-            'data-ad-format="fluid" data-ad-layout-key="%s" data-ad-client="%s" data-ad-slot="%s"></ins>'
-            '<script>(adsbygoogle = window.adsbygoogle || []).push({});</script></li>'
-            % (label, label, esc(INFEED_LAYOUT), esc(ADSENSE_ACCOUNT), esc(INFEED_SLOT)))
-
-
-def infeed_meta() -> str:
-    """Tells the home page's script which in-feed unit to put among the search results."""
-    if not ads_on():
-        return ""
-    return '<meta name="warraq-infeed" content="%s|%s|%s">' % (esc(ADSENSE_ACCOUNT), esc(INFEED_SLOT), esc(INFEED_LAYOUT))
 
 
 # Google Analytics 4 (the site's property). ANALYTICS=0 turns it off (a test copy); GA_ID replaces the property.
@@ -1112,7 +1070,6 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
 </div>
 </article>
 {about}
-{ad}
 {rel}
 <footer>{legal}<p>{note}</p></footer>
 </main>
@@ -1130,7 +1087,7 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
            logo=LOGO_SVG, search_icon=SEARCH_ICON, ph=esc(t["ph"]), search=esc(t["search"]),
            locale=OG_LOCALE[ui], adsense=site_head(), gtm_ns=gtm_noscript(),
            # far from the read buttons (an ad must not invite a mistaken click); only with a nonce to run it
-           ad_head=ad_head() if nonce and ads and indexable else "", ad=ad_unit(ui) if nonce and ads and indexable else "",
+           ad_head=ad_head() if nonce and ads and indexable else "",
            robots="index,follow,max-image-preview:large" if indexable else "noindex,follow", facts_h=esc(t["facts_h"]))
     # the Content-Security-Policy of this response only lets scripts carrying its nonce run
     return page.replace("<script", '<script nonce="%s"' % esc(nonce)) if nonce else page

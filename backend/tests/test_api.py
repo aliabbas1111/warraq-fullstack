@@ -1046,35 +1046,29 @@ def test_adsense_tag_on_every_page_and_ads_txt(client):
     assert r.status_code == 200 and r.text == "google.com, pub-7058063023261152, DIRECT, f08c47fec0942fa0\n"
 
 
-def test_ad_units_on_content_pages_only(client, monkeypatch):
-    monkeypatch.setenv("THIN_NOINDEX", "0")  # every book page shows its ad (the thin rule has its own test)
-    unit = 'data-ad-slot="1844690351"'
+def test_adsense_code_without_ad_units(client, monkeypatch):
+    """Pages with content of their own carry AdSense's code (Google verifies the site by it, and its Auto ads may
+    follow once the account allows) but no ad unit of any network; legal, contact and 404 pages carry none of it."""
+    monkeypatch.setenv("THIN_NOINDEX", "0")  # every book page counts here (the thin rule has its own test)
     loader = "pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7058063023261152"
-    for url, n in (("/", 2), ("/?lang=en", 2), ("/category/poe", 1), ("/author/shakespeare", 1), ("/book/1", 1)):
+    units = ('class="adsbygoogle"', "data-ad-slot", "data-ad-client", "warraq-infeed", "1844690351", "6915772378")
+    for url in ("/", "/?lang=en", "/category/poe", "/category/nov", "/author/shakespeare", "/book/1", "/articles"):
         r = client.get(url, follow_redirects=True)
         csp = r.headers["content-security-policy"]
         nonce = csp.split("'nonce-")[1].split("'")[0]
-        assert r.text.count(unit) == n and r.text.split("</head>")[0].count(loader) == 1, url
+        assert r.text.split("</head>")[0].count(loader) == 1 and not any(u in r.text for u in units), url
         assert "'strict-dynamic'" in csp and "frame-src https:" in csp and "frame-ancestors 'none'" in csp, url
         assert r.text.count("<script") == r.text.count('<script nonce="%s"' % nonce), url  # the only scripts that run
         assert r.headers["cross-origin-opener-policy"] == "same-origin-allow-popups"  # an ad's click may open its page
-    book = client.get("/book/1", follow_redirects=True).text
-    assert book.index('class="btns"') < book.index("</article>") < book.index('class="ad"')  # well below the read buttons
-    # the in-feed unit: one item of a long book list, after the 8th book; the home page's script is told its name
-    feed = 'data-ad-slot="6915772378"'
-    cat = client.get("/category/nov").text
-    items = cat.split('<ul class="rel">')[1].split("</ul>")[0].split("<li")[1:]
-    assert cat.count(feed) == 1 and 'class="infeed"' in items[8] and len(items) >= 13
-    assert '<meta name="warraq-infeed" content="ca-pub-7058063023261152|6915772378|-gg+g-1f-3w+ci">' in client.get("/").text
     for url in ("/about", "/privacy", "/terms", "/contact", "/no/such/page"):  # no ads beside thin or legal content
         r = client.get(url)
-        assert unit not in r.text and loader not in r.text and "'strict-dynamic'" not in r.headers["content-security-policy"], url
-    monkeypatch.setenv("ADS", "0")  # a test copy of the site: no ads, the strict policies as before
+        assert loader not in r.text and "'strict-dynamic'" not in r.headers["content-security-policy"], url
+    assert "adsbygoogle" not in client.get("/app.js").text  # the home page's script places no unit either
+    monkeypatch.setenv("ADS", "0")  # a test copy of the site: no AdSense code, the strict policies as before
     r = client.get("/")
-    assert unit not in r.text and loader not in r.text and "script-src 'self'" in r.headers["content-security-policy"]
-    assert "warraq-infeed" not in r.text and "6915772378" not in client.get("/category/nov").text
+    assert loader not in r.text and "script-src 'self'" in r.headers["content-security-policy"]
     r = client.get("/book/1", follow_redirects=True)
-    assert unit not in r.text and "'strict-dynamic'" not in r.headers["content-security-policy"]
+    assert loader not in r.text and "'strict-dynamic'" not in r.headers["content-security-policy"]
 
 
 def test_thin_pages_stay_out_of_search_sitemaps_and_ads(client, monkeypatch, tmp_path):
@@ -1108,9 +1102,9 @@ def test_thin_pages_stay_out_of_search_sitemaps_and_ads(client, monkeypatch, tmp
         "خاتمة <script>alert(1)</script> [سيئ](javascript:alert(1)).", encoding="utf-8")
     monkeypatch.setattr(content, "DIR", str(d))
     content._cache.clear()
-    unit = 'data-ad-slot="1844690351"'
+    unit = "adsbygoogle.js?client=ca-pub-7058063023261152"  # AdSense's code: only where a page has its own words
 
-    # a book with a text of its own: indexed, with its ad, its text, and a description taken from it
+    # a book with a text of its own: indexed, with AdSense's code, its text, and a description taken from it
     hamlet = client.get("/book/1", follow_redirects=True).text
     assert 'name="robots" content="index,follow' in hamlet and unit in hamlet
     assert "Context and significance" in hamlet and '<meta name="description" content="Hamlet, the prince of Denmark' in hamlet
@@ -1145,7 +1139,7 @@ def test_thin_pages_stay_out_of_search_sitemaps_and_ads(client, monkeypatch, tmp
     # the articles: written in Arabic, Article data, two ads, nothing unsafe passes from the text
     page = client.get("/articles/test-article")
     a = page.text
-    assert page.status_code == 200 and "<h1>مقال تجريبي</h1>" in a and '"Article"' in a and a.count(unit) == 2
+    assert page.status_code == 200 and "<h1>مقال تجريبي</h1>" in a and '"Article"' in a and a.count(unit) == 1 and 'class="adsbygoogle"' not in a
     assert '<a href="/book/1">رابط</a>' in a and "<strong>كلمة بارزة</strong>" in a and "<li>بند آخر</li>" in a and 'class="verse"' in a
     assert "<script>alert" not in a and 'href="javascript' not in a
     assert '<link rel="canonical" href="http://testserver/articles/test-article">' in client.get("/articles/test-article?lang=en").text
