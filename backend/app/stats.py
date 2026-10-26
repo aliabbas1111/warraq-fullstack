@@ -14,6 +14,7 @@ from .textnorm import norm
 BOT = re.compile(r"bot|crawl|spider|slurp|bing|facebookexternalhit|preview|monitor|uptime|curl|wget|python-requests|headless", re.I)
 KEEP_DAYS = 3
 MIN_SEARCHERS = 3  # a search is shown on the home page only once this many different people made it
+SHOW_MIN = 50  # a book's views or likes are shown to visitors only from this many ("3 views" makes a page look empty)
 # Days, months and years start at midnight of this time zone (hours from UTC; 3 = Baghdad, Riyadh, Kuwait)
 UTC_OFFSET = float(os.environ.get("STATS_UTC_OFFSET", "3"))
 
@@ -102,6 +103,11 @@ def log_search(conn, request, q: str) -> bool:
 def book_numbers(conn, book_id: int):
     r = conn.execute("SELECT views, likes FROM book_stats WHERE book_id=?", (book_id,)).fetchone()
     return (r["views"], r["likes"]) if r else (0, 0)
+
+
+def shown(n: int):
+    """A count as visitors see it: None (not shown) until it reaches SHOW_MIN; it is still counted."""
+    return n if n >= SHOW_MIN else None
 
 
 def has_liked(conn, request, book_id: int) -> bool:

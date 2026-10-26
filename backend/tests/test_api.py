@@ -520,6 +520,39 @@ def test_counters_cannot_be_pumped(client):
     assert "spam phrase" in client.get("/api/stats").json()["top_searches"]
 
 
+def test_most_viewed_and_small_counts(client):
+    """The home page's "most viewed" lists only books with a description; views and likes show from 50 on."""
+    import json as _json
+    from app import db, main as m
+    described = 1  # Hamlet, given a Gutenberg number and a description
+    conn = db.connect()
+    conn.execute("UPDATE books SET gid=1122 WHERE id=1")
+    conn.execute("INSERT OR REPLACE INTO book_descriptions(gid,en,en_ctx,ar,ar_ctx) VALUES(1122,?,?,?,?)",
+                 (_json.dumps(["Hamlet, the prince of Denmark, returns home."]), "[]", "[]", "[]"))
+    conn.commit()
+    bare = conn.execute("SELECT id FROM books WHERE gid IS NULL AND id>1 ORDER BY id LIMIT 1").fetchone()["id"]
+    conn.close()
+    for ua in ("Mozilla/5.0 one", "Mozilla/5.0 two", "Mozilla/5.0 three"):
+        client.get("/book/%d" % described, follow_redirects=True, headers={"user-agent": ua})
+        client.get("/book/%d" % bare, follow_redirects=True, headers={"user-agent": ua})
+    client.get("/book/%d" % bare, follow_redirects=True, headers={"user-agent": "Mozilla/5.0 four"})  # viewed most, no description
+    m._meta_cache.clear()
+    top = client.get("/api/stats").json()["top_books"]
+    assert [b["id"] for b in top] == [described] and top[0]["views"] is None  # 3 views: counted, not shown
+    page = client.get("/book/%d" % described, follow_redirects=True).text
+    assert '<span class="num">' not in page and '<span id="likeC" hidden> · <b id="likeN"></b></span>' in page
+    assert "interactionStatistic" not in page
+    conn = db.connect()
+    conn.execute("UPDATE book_stats SET views=50, likes=50 WHERE book_id=?", (described,))
+    conn.commit()
+    conn.close()
+    m._meta_cache.clear()
+    assert client.get("/api/stats").json()["top_books"][0]["likes"] == 50
+    page = client.get("/book/%d" % described, follow_redirects=True).text
+    assert '<span class="num">' in page and '<span id="likeC"> · <b id="likeN">50</b></span>' in page
+    assert '"userInteractionCount": 50' in page
+
+
 def test_rate_limit(client):
     codes = [client.post("/api/hit").status_code for _ in range(25)]
     assert codes[:20] == [200] * 20 and codes[-1] == 429

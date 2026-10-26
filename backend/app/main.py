@@ -1,4 +1,5 @@
 """Al-Warraq API (FastAPI + SQLite) that also serves the frontend."""
+import itertools
 import math
 import mimetypes
 import os
@@ -330,7 +331,10 @@ def create_app() -> FastAPI:
         if hit_ and hit_[0] > time.time():
             return hit_[1]
         payload = stats.summary(conn)
-        payload["top_books"] = [dict(book_json(r), views=r["_views"], likes=r["_likes"]) for r in stats.top_viewed(conn, 12)]
+        # the home page's "most viewed": only books with words of their own, the pages search engines index
+        top = (r for r in stats.top_viewed(conn, 200) if pages.book_indexable(r))
+        payload["top_books"] = [dict(book_json(r), views=stats.shown(r["_views"]), likes=stats.shown(r["_likes"]))
+                                for r in itertools.islice(top, 12)]
         payload["top_searches"] = stats.top_searches(conn, 12)
         _meta_cache[key] = (time.time() + 15, payload)
         return payload

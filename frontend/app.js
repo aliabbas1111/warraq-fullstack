@@ -1208,9 +1208,11 @@
                 countUp(e.target); } });
     }) : null;
 
+    const SHOW_VISITS = false; // the visitors box (today / month / year) is off for now; visitors are still counted
+
     function renderLive() {
         const el = $('#visits');
-        if (!el) return;
+        if (!el || !SHOW_VISITS) return;
         const l = S.live;
         el.hidden = !l;
         if (!l) return;
@@ -1248,7 +1250,7 @@
             qs = (l && l.top_searches) || [];
         sec.hidden = !(books.length || qs.length);
         $('#popBooks').innerHTML = books.length ? '<h3>' + esc(tr('pop_h')) + '</h3><div class="shelfrow">' + books.map((b) =>
-            '<div class="sh">' + coverHTML(b) + '<a class="sh-t" href="/book/' + num(b.id) + '">' + esc(bookTitle(b)) + '</a><span class="sh-v">' + ico('eye', 14) + ' ' + fmt(b.views) + '</span></div>').join('') + '</div>' : '';
+            '<div class="sh">' + coverHTML(b) + '<a class="sh-t" href="/book/' + num(b.id) + '">' + esc(bookTitle(b)) + '</a>' + (b.views ? '<span class="sh-v">' + ico('eye', 14) + ' ' + fmt(b.views) + '</span>' : '') + '</div>').join('') + '</div>' : '';
         $('#popSearch').innerHTML = qs.length ? '<h3>' + esc(tr('pop_s')) + '</h3><div class="qrow">' + qs.map((q) => '<button class="qchip" type="button" data-q="' + esc(q) + '">' + esc(q) + '</button>').join('') + '</div>' : '';
         watchCovers(sec);
     }

@@ -11,7 +11,7 @@ import re
 import time
 from urllib.parse import quote
 
-from . import content
+from . import content, stats
 from .catalog import CATEGORIES
 from .textnorm import norm
 from .modern import OL_KIND, SAFAHAT_KIND, ol_url, safahat_url
@@ -423,7 +423,7 @@ footer p{margin:0}
 """
 
 LIKE_JS = r'''<script>(function(){var b=document.getElementById('likeBtn');if(!b)return;var heart=function(f){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="'+f+'" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.4-9.3-9A5.4 5.4 0 0 1 12 6.2 5.4 5.4 0 0 1 21.3 12C19 16.6 12 21 12 21z"/></svg>';};
-b.addEventListener('click',function(){b.disabled=true;fetch('/api/like/'+b.dataset.id,{method:'POST'}).then(function(r){return r.json()}).then(function(j){if(typeof j.likes!=='number')return;b.classList.toggle('on',j.liked);b.setAttribute('aria-pressed',j.liked);document.getElementById('likeN').textContent=j.likes;document.getElementById('likeTxt').textContent=j.liked?b.dataset.liked:b.dataset.like;document.getElementById('likeIco').innerHTML=heart(j.liked?'currentColor':'none');}).catch(function(){}).then(function(){b.disabled=false;});});})();</script>'''
+b.addEventListener('click',function(){b.disabled=true;fetch('/api/like/'+b.dataset.id,{method:'POST'}).then(function(r){return r.json()}).then(function(j){if(typeof j.likes!=='number')return;b.classList.toggle('on',j.liked);b.setAttribute('aria-pressed',j.liked);document.getElementById('likeN').textContent=j.likes;document.getElementById('likeC').hidden=j.likes<+b.dataset.min;document.getElementById('likeTxt').textContent=j.liked?b.dataset.liked:b.dataset.like;document.getElementById('likeIco').innerHTML=heart(j.liked?'currentColor':'none');}).catch(function(){}).then(function(){b.disabled=false;});});})();</script>'''
 
 _cache = {}
 
@@ -929,9 +929,10 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
             book["author"]["alternateName"] = alt
     if covers:
         book["image"] = covers[0]
-    if numbers[1]:
+    views, likes = (stats.shown(n) for n in numbers)  # small counts stay off the page (and out of its data)
+    if likes:
         book["interactionStatistic"] = {"@type": "InteractionCounter", "interactionType": "https://schema.org/LikeAction",
-                                        "userInteractionCount": numbers[1]}
+                                        "userInteractionCount": likes}
     crumbs = {"@type": "BreadcrumbList", "@id": canon + "#crumbs", "itemListElement": [
         {"@type": "ListItem", "position": 1, "name": t["home"], "item": base + "/"},
         {"@type": "ListItem", "position": 2, "name": cat_name, "item": base + "/category/" + row["cat"]},
@@ -965,15 +966,15 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
 
     tags = '<a class="tag" href="/category/%s">%s</a>' % (esc(row["cat"]), esc(cat_name))
     tags += '<span class="tag">%s</span>' % esc(lang)
-    views, likes = numbers
     heart = '<svg width="18" height="18" viewBox="0 0 24 24" fill="%s" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.4-9.3-9A5.4 5.4 0 0 1 12 6.2 5.4 5.4 0 0 1 21.3 12C19 16.6 12 21 12 21z"/></svg>'
     eye = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'
     numbers_html = (
-        '<div class="nums"><span class="num">%s<b>%d</b> %s</span>'
-        '<button type="button" id="likeBtn" class="like%s" aria-pressed="%s" data-id="%d" data-like="%s" data-liked="%s">'
-        '<span id="likeIco">%s</span><span id="likeTxt">%s</span> · <b id="likeN">%d</b></button></div>'
-        % (eye, views, esc(t["views"]), " on" if liked else "", "true" if liked else "false", row["id"], esc(t["like"]), esc(t["liked"]),
-           heart % ("currentColor" if liked else "none"), esc(t["liked"] if liked else t["like"]), likes))
+        '<div class="nums">%s'
+        '<button type="button" id="likeBtn" class="like%s" aria-pressed="%s" data-id="%d" data-like="%s" data-liked="%s" data-min="%d">'
+        '<span id="likeIco">%s</span><span id="likeTxt">%s</span><span id="likeC"%s> · <b id="likeN">%s</b></span></button></div>'
+        % ('<span class="num">%s<b>%d</b> %s</span>' % (eye, views, esc(t["views"])) if views else "",
+           " on" if liked else "", "true" if liked else "false", row["id"], esc(t["like"]), esc(t["liked"]), stats.SHOW_MIN,
+           heart % ("currentColor" if liked else "none"), esc(t["liked"] if liked else t["like"]), "" if likes else " hidden", likes or ""))
 
     facts = ""
     if author:
