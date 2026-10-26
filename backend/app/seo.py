@@ -19,8 +19,9 @@ from . import content, legal, modern
 from .wikisource import WS_KIND
 from .catalog import ARABIC_CAT, CATEGORIES
 from .pages import (ARTICLES_NAME, BRAND, CSS, LOGO_SVG, OG_LOCALE, SEARCH_ICON, T, UI_LANG_SHORT, UI_LANGS,
-                    _authors, ad_head, analytics_head, book_author, book_title, canonical_path, esc,
-                    gtm_noscript, lang_menu, lang_q, legal_links, own_text, shown_title, site_head)
+                    _authors, ad_head, analytics_head, book_author, book_title, canonical_path, described_books,
+                    described_first, esc, gtm_noscript, is_arabic, lang_menu, lang_q, legal_links, own_text, read_links,
+                    shown_title, site_head)
 
 FOUNDER = {"@type": "Person", "name": "Ali Abbas Taher", "alternateName": "علي عباس طاهر"}  # who runs the library
 
@@ -260,6 +261,87 @@ def _home_template(frontend_dir: str, ui: str) -> str:
     return html
 
 
+_script = {}  # app.js's interface strings and icons, read again when the file changes
+_ICON = re.compile(r"^ +(\w+): '([^']*)',?$", re.M)
+HOME_BOOKS, HOME_AUTHORS = 24, 30  # the first books and authors the home page's HTML holds
+
+
+def _script_data(frontend_dir: str):
+    """(ui_strings(), {category: icon path}) from app.js."""
+    path = os.path.join(frontend_dir, "app.js")
+    key = (path, os.path.getmtime(path))
+    if _script.get("key") != key:
+        with open(path, encoding="utf-8") as f:
+            src = f.read()
+        icons = src[src.index("const ICONS = {"):]
+        _script.update(key=key, strings=ui_strings(frontend_dir), icons=dict(_ICON.findall(icons[:icons.index("};")])))
+    return _script["strings"], _script["icons"]
+
+
+def _tr(t: dict, key: str, n: int) -> str:
+    return t.get(key, "").replace("{n}", "{:,}".format(n))
+
+
+def _card_links(row, ui: str, t: dict, authors: dict):
+    """(address, label, [(label, address)]): the reading links app.js's links() gives the same book."""
+    if row["gid"] and not row["ext"]:
+        a = authors.get(row["author_key"])
+        last = ((a["en"] if a else row["author_en"]) or "").split(" ")[-1]
+        g, q = row["gid"], quote((row["title"] + " " + last).strip(), safe="-_.!~*'()")
+        return ("https://www.gutenberg.org/cache/epub/%d/pg%d-images.html" % (g, g), t["read"],
+                [(t["l_page"], "https://www.gutenberg.org/ebooks/%d" % g), (t["l_arch"], "https://archive.org/search?query=" + q)])
+    main, direct, extra = read_links(row, ui)  # the others: the addresses of the book's own page
+    return main, t["read" if direct else "find"], [(name, url) for url, name in extra]
+
+
+def _book_card(row, ui: str, t: dict, authors: dict) -> str:
+    """A book as app.js's card() draws it, its cover image already there for readers without the script."""
+    title, au = shown_title(row, ui), book_author(row, ui, authors)
+    cat = CATEGORIES.get(row["cat"], CATEGORIES["gen"])
+    href = esc(canonical_path(row))
+    img = (' src="https://www.gutenberg.org/cache/epub/%d/pg%d.cover.medium.jpg" loading="lazy"' % (row["gid"], row["gid"])
+           if row["gid"] else "")
+    main, label, extra = _card_links(row, ui, t, authors)
+    return ('<article class="book"><a class="cover%s" style="--h:%d" data-v="%d" href="%s" data-id="%d" data-gid="%s" data-hid="%s"%s'
+            ' aria-label="%s"><span class="cv-fb"><span class="cv-deco"></span><span class="cv-cat">%s</span>'
+            '<span class="cv-title%s">%s</span><span class="cv-auth">%s</span></span>'
+            '<img class="cvimg" alt="" decoding="async" referrerpolicy="no-referrer"%s></a>'
+            '<div class="meta"><h3 class="ttl"><a class="ttl-a" href="%s">%s</a></h3>%s<div class="row">'
+            '<a class="btn" href="%s" target="_blank" rel="noopener">%s</a>%s</div></div></article>'
+            % (" cv-long" if len(title) > 36 else "", int(cat["hue"]), row["id"] % 3, href, row["id"], row["gid"] or "",
+               esc(row["htid"] or ""), ' data-started="1" data-stage="1"' if img else "", esc(title + (" — " + au if au else "")),
+               esc(cat[ui]), " ar" if is_arabic(title) else "", esc(title), esc(au or " "), img, href, esc(title),
+               '<p class="by">%s</p>' % esc(au) if au else "", esc(main), esc(label),
+               "".join('<a class="lnk" href="%s" target="_blank" rel="noopener">%s</a>' % (esc(u), esc(n)) for n, u in extra)))
+
+
+def _home_lists(conn, meta: dict, frontend_dir: str, ui: str, books: bool = True) -> dict:
+    """The category cards, the first described books and the best-known authors with a biography, in the home page's
+    HTML as app.js draws them (it draws them again over these): a reader without the script, or a crawler that does
+    not run it, sees what the library holds."""
+    strings, icons = _script_data(frontend_dir)
+    t, q = strings[ui], lang_q(ui)
+    cats = [c for c in meta["categories"] if c["count"] + (c["poems"] or 0) > 0]
+    cards = "".join(
+        '<a class="cc" href="/category/%s%s" data-cat="%s" style="--h:%d;--i:%d"><span class="cci">'
+        '<svg class="ic ic-%s" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="%s"/></svg>'
+        '</span><b>%s</b><small>%s</small></a>'
+        % (c["key"], q, c["key"], int(c["hue"]), i, c["key"] if c["key"] in icons else "gen", icons.get(c["key"], icons.get("gen", "")),
+           esc(c[ui]), esc(_tr(t, "n_books", c["count"]) + (" · " + _tr(t, "n_poems", c["poems"]) if c["poems"] else "")
+                           if c["count"] else _tr(t, "n_poems", c["poems"])))
+        for i, c in enumerate(cats))
+    authors = _authors(conn)
+    shelf = "".join(_book_card(r, ui, t, authors) for r in described_books(conn)[:HOME_BOOKS]) if books else ""
+    people = []
+    for a in sorted(meta["authors"], key=lambda a: not a["bio"])[:HOME_AUTHORS]:  # the same order as app.js
+        name = a["ar"] if ui == "ar" else a["en"]
+        people.append('<a class="av" href="/author/%s%s" data-ak="%s"><span class="mono" style="--h:%d" aria-hidden="true">%s</span>'
+                      '<b>%s</b><small>%s</small></a>'
+                      % (esc(quote(a["key"])), q, esc(a["key"]), int(CATEGORIES.get(a["cat"], {}).get("hue", 210)),
+                         esc(next((ch for ch in name if ch.isalpha()), "?")), esc(name), esc(_tr(t, "books_n", a["count"]))))
+    return {"cats": cards, "books": shelf, "authors": "".join(people)}
+
+
 def with_nonce(page: str, nonce: str) -> str:
     """Every script of the page carries the response's nonce: the only scripts its Content-Security-Policy runs."""
     return page.replace("<script", '<script nonce="%s"' % esc(nonce)) if nonce else page
@@ -282,7 +364,8 @@ def _home_intro(ui: str) -> str:
     return out + "</div>"
 
 
-def home_html(frontend_dir: str, base: str, ui: str = "ar", nonce: str = "", search: bool = False) -> str:
+def home_html(frontend_dir: str, base: str, ui: str = "ar", nonce: str = "", search: bool = False, conn=None,
+              meta=None) -> str:
     canon = base + "/" + lang_q(ui)
     head = "\n".join([
         '<link rel="canonical" href="%s">' % esc(canon),
@@ -305,8 +388,11 @@ def home_html(frontend_dir: str, base: str, ui: str = "ar", nonce: str = "", sea
         ]}),
     ])
     links = " ".join('<a href="/category/%s%s">%s</a>' % (k, lang_q(ui), esc(v[ui])) for k, v in CATEGORIES.items())
+    # a search (/?q=) shows its own results: the first books would only be replaced by them
+    lists = _home_lists(conn, meta, frontend_dir, ui, books=not search) if conn is not None and meta else {}
     page = (_home_template(frontend_dir, ui).replace("<!--SEO:HEAD-->", head).replace("<!--SEO:BODY-->", gtm_noscript()).replace("<!--SEO:CATS-->", links)
-            .replace("<!--SEO:INTRO-->", _home_intro(ui)))
+            .replace("<!--SEO:INTRO-->", _home_intro(ui)).replace("<!--SEO:CATGRID-->", lists.get("cats", ""))
+            .replace("<!--SEO:BOOKS-->", lists.get("books", "")).replace("<!--SEO:AUTHORS-->", lists.get("authors", "")))
     if search:  # /?q=...: the same page showing search results, not a page of its own for search engines
         page = page.replace('<meta name="robots" content="index,follow">', '<meta name="robots" content="noindex,follow">', 1)
     return with_nonce(page, nonce)
@@ -401,7 +487,8 @@ def category_page(conn, key: str, base: str, ui: str = "ar", page: int = 1, nonc
     pages = max(1, min(MAX_PAGES, math.ceil(total / PER_PAGE)))
     if page < 1 or page > pages:
         return None
-    rows = conn.execute("SELECT * FROM books WHERE " + cond + " ORDER BY ord LIMIT ? OFFSET ?", (arg, PER_PAGE, (page - 1) * PER_PAGE)).fetchall()
+    keep = (lambda r: r["lang"] == "ar") if key == ARABIC_CAT else (lambda r: r["cat"] == key)
+    rows = described_first(conn, " WHERE " + cond, [arg], keep, (page - 1) * PER_PAGE, PER_PAGE)
     s, name = S[ui], CATEGORIES[key][ui]
     path = "/category/" + key
     if _has_modern(conn, cond, arg):  # not every book here is free: say so
@@ -433,7 +520,7 @@ def author_page(conn, key: str, base: str, ui: str = "ar", page: int = 1, nonce:
     pages = max(1, min(MAX_PAGES, math.ceil(total / PER_PAGE)))
     if not total or page < 1 or page > pages:
         return None
-    rows = conn.execute("SELECT * FROM books WHERE author_key=? ORDER BY ord LIMIT ? OFFSET ?", (key, PER_PAGE, (page - 1) * PER_PAGE)).fetchall()
+    rows = described_first(conn, " WHERE author_key=?", [key], lambda r: r["author_key"] == key, (page - 1) * PER_PAGE, PER_PAGE)
     s, name = S[ui], (a["ar"] if ui == "ar" and a["ar"] else a["en"])
     if _has_modern(conn, "author_key=?", key):
         s = dict(s, auth_d=s["auth_dm"])

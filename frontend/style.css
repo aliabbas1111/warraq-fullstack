@@ -2034,7 +2034,9 @@ a.av {
     background: var(--card)
 }
 
-.cvimg.ok {
+.cvimg.ok,
+html:not(.js) .cvimg[src] {
+    /* without the script, the covers the server put in the page show as they are */
     opacity: 1
 }
 

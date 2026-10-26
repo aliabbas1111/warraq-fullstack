@@ -109,7 +109,7 @@
             p_pdf: 'PDF مجاني',
             p_cited: '{n} استشهاد',
             r_open: '↗',
-            legal1: 'جميع الروابط تقود إلى مواقع خارجية. المكتبة لا تستضيف ملفات، وتعرض أعمال الملك العام، أما الكتب الحديثة فنعرض بيانات فهرستها فقط ونوصلك إلى مصادرها القانونية.',
+            legal1: 'روابط القراءة تقود إلى نسخ الكتب في مصادرها الأصلية القانونية، أما النبذ والمقالات وسير المؤلفين فمحتوى أصلي خاص بالمكتبة.',
             legal2: 'حالة الملك العام تختلف من بلد لآخر (مشروع غوتنبرغ يتبع القانون الأمريكي). تحقق من قانون بلدك قبل إعادة النشر.',
             lang_menu: 'اللغة'
         },
@@ -215,7 +215,7 @@
             p_pdf: 'Free PDF',
             p_cited: '{n} citations',
             r_open: '↗',
-            legal1: 'All links lead to external sites. This library hosts no files; it lists public-domain works, and for modern books only their catalogue record with a link to a legal source.',
+            legal1: 'Reading links lead to copies of the books at their original, legal sources; the book summaries, articles and author biographies are original content written by the library.',
             legal2: 'Public-domain status differs by country (Project Gutenberg follows US law). Check your local law before republishing.',
             lang_menu: 'Language'
         },
@@ -321,7 +321,7 @@
             p_pdf: '免费 PDF',
             p_cited: '{n} 次引用',
             r_open: '↗',
-            legal1: '所有链接都通向外部网站。本图书馆不存放任何文件；它列出公有领域作品，对于现代图书，只提供书目信息和指向合法来源的链接。',
+            legal1: '阅读链接通向图书在其原始合法来源处的副本；而图书简介、文章和作者生平则是本图书馆自己撰写的原创内容。',
             legal2: '公有领域的认定因国家而异（古腾堡计划遵循美国法律）。转载前请先了解你所在地的法律。',
             lang_menu: '语言'
         },
@@ -427,7 +427,7 @@
             p_pdf: 'PDF gratuit',
             p_cited: '{n} citations',
             r_open: '↗',
-            legal1: 'Tous les liens mènent à des sites externes. Cette bibliothèque n’héberge aucun fichier ; elle répertorie des œuvres du domaine public et, pour les livres modernes, seulement leur notice avec un lien vers une source légale.',
+            legal1: 'Les liens de lecture mènent aux exemplaires des livres chez leurs sources d’origine légales ; les présentations des livres, les articles et les biographies d’auteurs sont des contenus originaux rédigés par la bibliothèque.',
             legal2: 'Le statut de domaine public varie selon les pays (le Projet Gutenberg suit le droit américain). Vérifiez la loi de votre pays avant toute republication.',
             lang_menu: 'Langue'
         },
@@ -533,7 +533,7 @@
             p_pdf: 'PDF gratis',
             p_cited: '{n} citas',
             r_open: '↗',
-            legal1: 'Todos los enlaces llevan a sitios externos. Esta biblioteca no aloja archivos; recoge obras de dominio público y, de los libros modernos, solo su ficha de catálogo con un enlace a una fuente legal.',
+            legal1: 'Los enlaces de lectura llevan a las copias de los libros en sus fuentes originales y legales; las reseñas de los libros, los artículos y las biografías de autores son contenido original escrito por la biblioteca.',
             legal2: 'La condición de dominio público cambia según el país (el Proyecto Gutenberg sigue la ley de EE. UU.). Consulta la ley de tu país antes de volver a publicar.',
             lang_menu: 'Idioma'
         },
@@ -639,7 +639,7 @@
             p_pdf: 'PDF grátis',
             p_cited: '{n} citações',
             r_open: '↗',
-            legal1: 'Todos os links levam a sites externos. Esta biblioteca não hospeda arquivos; ela lista obras em domínio público e, dos livros modernos, apenas a ficha catalográfica com um link para uma fonte legal.',
+            legal1: 'Os links de leitura levam às cópias dos livros nas fontes originais e legais; as apresentações dos livros, os artigos e as biografias dos autores são conteúdo original escrito pela biblioteca.',
             legal2: 'A condição de domínio público varia de país para país (o Projeto Gutenberg segue a lei dos EUA). Confira a lei do seu país antes de republicar.',
             lang_menu: 'Idioma'
         },
@@ -745,7 +745,7 @@
             p_pdf: '無料PDF',
             p_cited: '被引用 {n}件',
             r_open: '↗',
-            legal1: 'すべてのリンクは外部サイトにつながります。当図書館はファイルを掲載せず、パブリックドメインの作品を紹介し、現代の本については書誌情報と合法的な情報源へのリンクのみを表示します。',
+            legal1: '読書リンクは、元の合法的な情報源にある本へ案内します。本の紹介文、記事、著者の略歴は、当図書館が独自に書いたオリジナルのコンテンツです。',
             legal2: 'パブリックドメインかどうかは国によって異なります（プロジェクト・グーテンベルクは米国法に従います）。再公開する前に、お住まいの国の法律を確認してください。',
             lang_menu: '言語'
         },
@@ -851,7 +851,7 @@
             p_pdf: 'Kostenloses PDF',
             p_cited: '{n} Zitierungen',
             r_open: '↗',
-            legal1: 'Alle Links führen zu externen Websites. Diese Bibliothek speichert keine Dateien; sie verzeichnet gemeinfreie Werke und zeigt bei modernen Büchern nur die Katalogdaten mit einem Link zu einer legalen Quelle.',
+            legal1: 'Die Leselinks führen zu den Exemplaren der Bücher bei ihren ursprünglichen, legalen Quellen; die Buchvorstellungen, Artikel und Autorenbiografien sind eigene Originalinhalte der Bibliothek.',
             legal2: 'Ob ein Werk gemeinfrei ist, hängt vom Land ab (Projekt Gutenberg folgt US-Recht). Prüfen Sie das Recht Ihres Landes, bevor Sie etwas neu veröffentlichen.',
             lang_menu: 'Sprache'
         }
@@ -972,6 +972,8 @@
         return S.ui === 'ar' && b.aa ? b.aa : (b.a || '');
     }
     const bookTitle = (b) => (S.ui === 'ar' ? (b.ta || b.t) : b.t);
+    // the book page's own address from the server (/book/12/crime-and-punishment): /book/12 only redirects there
+    const bookHref = (b) => (/^\/book\/\d+\/[^/?#]+$/.test(b.u || '') ? b.u : '/book/' + num(b.id));
 
     function langName(code) {
         try { return new Intl.DisplayNames([S.ui], { type: 'language' }).of(code) || code; } catch (e) { return code; }
@@ -1048,7 +1050,7 @@
             au = authName(b),
             h = hue(b.c);
         const ar = isArabic(title);
-        return '<a class="cover' + (title.length > 36 ? ' cv-long' : '') + '" style="--h:' + num(h) + '" data-v="' + (num(b.id) % 3) + '" href="/book/' + num(b.id) + '"' +
+        return '<a class="cover' + (title.length > 36 ? ' cv-long' : '') + '" style="--h:' + num(h) + '" data-v="' + (num(b.id) % 3) + '" href="' + esc(bookHref(b)) + '"' +
             ' data-id="' + num(b.id) + '" data-gid="' + (num(b.gid) || '') + '" data-hid="' + esc(b.hid || '') + '"' + (b.ws && !b.gid && !b.hid ? ' data-ws="1"' : '') + ' aria-label="' + esc(title + (au ? ' — ' + au : '')) + '">' +
             '<span class="cv-fb"><span class="cv-deco"></span><span class="cv-cat">' + esc(catName(b.c)) + '</span>' +
             '<span class="cv-title' + (ar ? ' ar' : '') + '">' + esc(title) + '</span><span class="cv-auth">' + esc(au || ' ') + '</span></span>' +
@@ -1250,7 +1252,7 @@
             qs = (l && l.top_searches) || [];
         sec.hidden = !(books.length || qs.length);
         $('#popBooks').innerHTML = books.length ? '<h3>' + esc(tr('pop_h')) + '</h3><div class="shelfrow">' + books.map((b) =>
-            '<div class="sh">' + coverHTML(b) + '<a class="sh-t" href="/book/' + num(b.id) + '">' + esc(bookTitle(b)) + '</a>' + (b.views ? '<span class="sh-v">' + ico('eye', 14) + ' ' + fmt(b.views) + '</span>' : '') + '</div>').join('') + '</div>' : '';
+            '<div class="sh">' + coverHTML(b) + '<a class="sh-t" href="' + esc(bookHref(b)) + '">' + esc(bookTitle(b)) + '</a>' + (b.views ? '<span class="sh-v">' + ico('eye', 14) + ' ' + fmt(b.views) + '</span>' : '') + '</div>').join('') + '</div>' : '';
         $('#popSearch').innerHTML = qs.length ? '<h3>' + esc(tr('pop_s')) + '</h3><div class="qrow">' + qs.map((q) => '<button class="qchip" type="button" data-q="' + esc(q) + '">' + esc(q) + '</button>').join('') + '</div>' : '';
         watchCovers(sec);
     }
@@ -1314,7 +1316,7 @@
             title = bookTitle(b),
             au = authName(b);
         return '<article class="book">' + coverHTML(b) +
-            '<div class="meta"><h3 class="ttl"><a class="ttl-a" href="/book/' + num(b.id) + '">' + esc(title) + '</a></h3>' + (au ? '<p class="by">' + esc(au) + '</p>' : '') +
+            '<div class="meta"><h3 class="ttl"><a class="ttl-a" href="' + esc(bookHref(b)) + '">' + esc(title) + '</a></h3>' + (au ? '<p class="by">' + esc(au) + '</p>' : '') +
             '<div class="row"><a class="btn" href="' + esc(safeUrl(L.main)) + '" target="_blank" rel="noopener">' + esc(L.label || tr(L.read ? 'read' : 'find')) + '</a>' +
             L.list.map((x) => '<a class="lnk" href="' + esc(safeUrl(x[1])) + '" target="_blank" rel="noopener">' + esc(x[0]) + '</a>').join('') + '</div></div></article>';
     }
@@ -1349,8 +1351,10 @@
         } else bq.innerHTML = '';
 
         const grid = $('#grid');
-        if (!append) { grid.innerHTML = S.items.map(card).join('');
-            rendered = S.items.length; } else if (S.items.length > rendered) { grid.insertAdjacentHTML('beforeend', S.items.slice(rendered).map(card).join(''));
+        if (!append) { if (!S.loading || !grid.hasAttribute('data-srv')) { // the server's first books stay until the list comes
+                grid.removeAttribute('data-srv');
+                grid.innerHTML = S.items.map(card).join('');
+                rendered = S.items.length; } } else if (S.items.length > rendered) { grid.insertAdjacentHTML('beforeend', S.items.slice(rendered).map(card).join(''));
             rendered = S.items.length; }
         watchCovers(grid);
 
@@ -1367,10 +1371,12 @@
 
     function hasMore() { return !S.end && (S.capped || S.items.length < S.total); }
 
+    const AUTH_FIRST = 30; // as many as the server's page holds before the script runs (seo.HOME_AUTHORS)
+
     function renderAuthors() {
         if (!S.meta) return;
-        const keys = S.meta.authors,
-            list = S.authAll ? keys : keys.slice(0, 16);
+        const keys = S.meta.authors.filter((a) => a.bio).concat(S.meta.authors.filter((a) => !a.bio)), // biographies first
+            list = S.authAll ? keys : keys.slice(0, AUTH_FIRST);
         const av = $('#avs');
         av.classList.toggle('all', S.authAll);
         av.innerHTML = list.map((a) => {
@@ -1379,7 +1385,7 @@
             return '<a class="av" href="/author/' + enc(a.key) + langQ() + '" data-ak="' + esc(a.key) + '"><span class="mono" style="--h:' + num(hue(a.cat)) + '" aria-hidden="true">' + esc(ini) + '</span><b>' + esc(nm) + '</b><small>' + esc(tr('books_n', { n: fmt(a.count) })) + '</small></a>';
         }).join('');
         const m = $('#authMore');
-        m.hidden = keys.length <= 16;
+        m.hidden = keys.length <= AUTH_FIRST;
         m.textContent = S.authAll ? tr('show_less') : tr('show_all', { n: keys.length });
     }
 
@@ -1387,7 +1393,7 @@
     const DESKS = [
         { domain: 'med', input: '#rqMed', topics: '#topicsMed', srcs: '#srcsMed', list: '#papersMed', def: 'cardiology', data: null, papers: null, req: 0, timer: 0 },
         { domain: 'eng', input: '#rqEng', topics: '#topicsEng', srcs: '#srcsEng', list: '#papersEng', def: 'control systems', data: null, papers: null, req: 0, timer: 0 }
-    ];
+    ].filter((d) => $(d.input)); // the research desk is off the home page for now: nothing to fill
 
     function renderDesk(d) {
         if (!d.data) { $(d.topics).innerHTML = '';
@@ -1640,6 +1646,9 @@
             if (sp.get('ak')) S.ak = sp.get('ak');
         } catch (e) {}
         S.err = false;
+        // the server's first books come with their covers: one may have loaded before this script was listening
+        document.querySelectorAll('#grid .cvimg[src]').forEach((img) => { if (img.complete) { if (img.naturalWidth >= 40) img.classList.add('ok');
+                else coverFailed(img.parentElement); } });
         applyStatic();
         renderHero();
         renderResults(false);

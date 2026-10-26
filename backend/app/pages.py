@@ -745,18 +745,63 @@ def _authors(conn) -> dict:
     return _cached("authors", 600, lambda: {r["key"]: {"en": r["en"], "ar": r["ar"]} for r in conn.execute("SELECT key, en, ar FROM authors")})
 
 
+def described_books(conn) -> list:
+    """The books with a text of their own in their page's language (book_indexable with THIN_NOINDEX), in catalogue
+    order: every list of books shows them first. One pass over the catalogue (about a second for a million books),
+    made when the server starts (main.lifespan) and kept: the texts change only with a new version of the site."""
+    path = next((r[2] for r in conn.execute("PRAGMA database_list") if r[1] == "main"), "")
+    return _cached(("described", path), 86400, lambda: _described(conn))
+
+
+def _described(conn) -> list:
+    texts = {r["gid"]: r for r in conn.execute("SELECT gid, ar, en FROM book_descriptions")}
+    old = content.hand_picked()
+    gids = sorted(set(texts) | set(old))
+    if not gids:
+        return []
+    out = []
+    # the same test as content.book(row, default_ui(row)), without opening the database once per book
+    for r in conn.execute("SELECT * FROM books WHERE gid IN (%s)" % ",".join("?" * len(gids)), gids):
+        ui, t = default_ui(r), texts.get(r["gid"])
+        if (t and json.loads(t[ui] or "[]")) or (r["curated"] == 1 and old.get(r["gid"], {}).get(ui)):
+            out.append(r)
+    return sorted(out, key=lambda r: r["ord"])
+
+
+def described_first(conn, where: str, args, keep, offset: int, limit: int) -> list:
+    """One page of a list of books: its described books first (described_books), then the others in catalogue order.
+    where/args choose the list in SQL (" WHERE cat=?", or "" for every book), keep(row) says the same of a row."""
+    first = [r for r in described_books(conn) if keep(r)]
+    page = first[offset:offset + limit]
+    if len(page) < limit:
+        ids = [r["id"] for r in first]
+        rest = where + ((" AND " if where else " WHERE ") + "id NOT IN (%s)" % ",".join("?" * len(ids)) if ids else "")
+        page += conn.execute("SELECT * FROM books" + rest + " ORDER BY ord LIMIT ? OFFSET ?",
+                             list(args) + ids + [limit - len(page), max(0, offset - len(first))]).fetchall()
+    return page
+
+
 RELATED_MIN, RELATED_MAX = 5, 8
 
 
 def related(conn, row):
-    """5 to 8 similar books: the author's best known first, then neighbours in the same category (same language
-    preferred), then the category's best known."""
+    """5 to 8 similar books, the described ones first: the author's, then those of the same category closest to this
+    one in the catalogue order (same language preferred). What is left goes to the author's best known, neighbours in
+    the same category (same language preferred), then the category's best known."""
     out, seen = [], {row["id"]}
 
-    def add(rows):
+    def add(rows, upto=RELATED_MAX):
         for r in rows:
-            if r["id"] not in seen and len(out) < RELATED_MAX:
+            if len(out) >= upto:
+                break
+            if r["id"] not in seen:
                 out.append(r); seen.add(r["id"])
+    described = described_books(conn)
+    near = sorted((r for r in described if r["cat"] == row["cat"]), key=lambda r: abs(r["ord"] - row["ord"]))
+    if row["author_key"]:
+        add((r for r in described if r["author_key"] == row["author_key"]), 4)
+    add(r for r in near if r["lang"] == row["lang"])
+    add(near)
     if row["author_key"]:
         add(conn.execute("SELECT * FROM books WHERE author_key=? AND id!=? ORDER BY ord LIMIT 4", (row["author_key"], row["id"])))
     add(conn.execute("SELECT * FROM books WHERE id BETWEEN ? AND ? AND cat=? AND lang=? AND id!=? LIMIT 24",
@@ -992,7 +1037,7 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
         items = []
         for r in rel_rows:
             rt, ra = shown_title(r, ui), book_author(r, ui, authors)
-            items.append('<li><a href="/book/%d">%s%s</a></li>' % (r["id"], esc(rt), ("<small>%s</small>" % esc(ra)) if ra else ""))
+            items.append('<li><a href="%s">%s%s</a></li>' % (esc(canonical_path(r)), esc(rt), ("<small>%s</small>" % esc(ra)) if ra else ""))
         rel_html = "<h2>%s</h2><ul class=\"rel\">%s</ul>" % (esc(t[key]), "".join(items))
 
     if note.get("about"):

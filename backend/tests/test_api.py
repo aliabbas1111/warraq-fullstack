@@ -1141,7 +1141,7 @@ def test_thin_pages_stay_out_of_search_sitemaps_and_ads(client, monkeypatch, tmp
     hamlet = client.get("/book/1", follow_redirects=True).text
     assert 'name="robots" content="index,follow' in hamlet and unit in hamlet
     assert "Context and significance" in hamlet and '<meta name="description" content="Hamlet, the prince of Denmark' in hamlet
-    assert '<a href="/book/2?lang=en">Macbeth</a>' in hamlet and "<title>Hamlet by William Shakespeare | Al-Warraq Library</title>" in hamlet
+    assert '<a href="/book/2/macbeth?lang=en">Macbeth</a>' in hamlet and "<title>Hamlet by William Shakespeare | Al-Warraq Library</title>" in hamlet
     # a catalogue record alone: out of search results and ads, under the strict policy
     macbeth = client.get("/book/2", follow_redirects=True)
     assert 'name="robots" content="noindex,follow"' in macbeth.text and unit not in macbeth.text
@@ -1173,7 +1173,7 @@ def test_thin_pages_stay_out_of_search_sitemaps_and_ads(client, monkeypatch, tmp
     page = client.get("/articles/test-article")
     a = page.text
     assert page.status_code == 200 and "<h1>مقال تجريبي</h1>" in a and '"Article"' in a and a.count(unit) == 1 and 'class="adsbygoogle"' not in a
-    assert '<a href="/book/1">رابط</a>' in a and "<strong>كلمة بارزة</strong>" in a and "<li>بند آخر</li>" in a and 'class="verse"' in a
+    assert '<a href="/book/1/hamlet">رابط</a>' in a and "<strong>كلمة بارزة</strong>" in a and "<li>بند آخر</li>" in a and 'class="verse"' in a
     assert "<script>alert" not in a and 'href="javascript' not in a
     assert '<link rel="canonical" href="http://testserver/articles/test-article">' in client.get("/articles/test-article?lang=en").text
     assert client.get("/articles/nope").status_code == 404 and 'href="/articles/test-article"' in client.get("/articles").text
@@ -1394,3 +1394,86 @@ def test_platform_address_goes_to_the_own_domain(client, monkeypatch):
     assert client.post("/contact", headers=platform, follow_redirects=False).status_code == 308  # a form stays a POST
     assert client.get("/api/health", headers=platform).status_code == 200
     assert client.get("/robots.txt").status_code == 200  # another address (the test server's) is not the platform's
+
+
+def test_described_books_come_first(client):
+    """Every list shows the books with a text of their own first (home, categories, authors, similar books, the list
+    of the home page's script); the home page's HTML already holds the categories, the first described books and the
+    authors with a biography; links to a book go to its own address, not to /book/<id>, which only redirects."""
+    import json as _json
+    import re as _re
+    from app import content, db, main as m, pages, seo
+    conn = db.connect()
+    late = conn.execute("SELECT id FROM books WHERE author_key='dostoevsky' ORDER BY ord DESC LIMIT 1").fetchone()["id"]
+    other = conn.execute("SELECT id FROM books WHERE cat='dra' AND author_key!='shakespeare' ORDER BY ord DESC LIMIT 1").fetchone()["id"]
+    for gid, book_id in ((900001, 2), (900002, 12), (900003, late)):  # Macbeth, Crime and Punishment, Dostoevsky's last
+        conn.execute("UPDATE books SET gid=? WHERE id=?", (gid, book_id))
+        conn.execute("INSERT INTO book_descriptions(gid,en,en_ctx,ar,ar_ctx) VALUES(?,?,?,?,?)",
+                     (gid, _json.dumps(["About [Crime and Punishment](/book/12?lang=en)."]), "[]", "[]", "[]"))
+    conn.execute("INSERT INTO book_descriptions(gid,en,en_ctx,ar,ar_ctx) VALUES(900004,'[]','[]','[]','[]')")
+    conn.execute("UPDATE books SET gid=900004 WHERE id=3")  # a row, but no text: not described
+    conn.commit()
+    pages._cache.clear()
+    m._meta_cache.clear()
+    first = [2, 12, late]
+    assert [r["id"] for r in pages.described_books(conn)] == first
+    assert first == [r["id"] for r in sorted(conn.execute("SELECT * FROM books WHERE gid IS NOT NULL"), key=lambda r: r["ord"])
+                     if pages.book_indexable(r)]  # the same books as the pages search engines may keep
+    c_and_p = pages.canonical_path(conn.execute("SELECT * FROM books WHERE id=12").fetchone())
+    assert c_and_p == "/book/12/crime-and-punishment"
+
+    # the script's list: browsing puts them first, page after page without a gap or a repeat; a search keeps its order
+    api = client.get("/api/books", params={"limit": 5}).json()
+    assert [b["id"] for b in api["items"][:3]] == first and api["total"] == 386 and api["items"][1]["u"] == c_and_p
+    seen = []
+    for offset in range(0, 386, 50):
+        seen += [b["id"] for b in client.get("/api/books", params={"limit": 50, "offset": offset}).json()["items"]]
+    assert len(seen) == len(set(seen)) == 386
+    assert [b["id"] for b in client.get("/api/books", params={"ak": "dostoevsky", "limit": 3}).json()["items"]][:2] == [12, late]
+    assert client.get("/api/books", params={"cat": "nov", "limit": 1}).json()["items"][0]["id"] == 12
+    assert client.get("/api/books", params={"q": "hamlet"}).json()["items"][0]["id"] == 1
+
+    # category and author pages; a book's similar books; links inside the texts
+    def book_ids(page):
+        return [int(i) for i in _re.findall(r'<li><a href="/book/(\d+)/', page)]
+    nov = [i for i in first if conn.execute("SELECT cat FROM books WHERE id=?", (i,)).fetchone()["cat"] == "nov"]
+    assert book_ids(client.get("/category/nov").text)[:len(nov)] == nov and 12 in nov
+    assert book_ids(client.get("/category/dra").text)[0] == 2
+    assert book_ids(client.get("/author/dostoevsky").text)[:2] == [12, late]
+    page = client.get("/book/%d" % other, follow_redirects=True).text
+    similar = page.split('<ul class="rel">')[1].split("</ul>")[0]
+    assert _re.findall(r'href="/book/(\d+)/', similar)[0] == "2" and not _re.search(r'href="/book/\d+"', similar)
+    macbeth = client.get("/book/2", follow_redirects=True).text
+    assert 'href="/book/12/crime-and-punishment?lang=en">Crime and Punishment</a>' in macbeth
+    assert content.book_link("/book/12?lang=en") == c_and_p + "?lang=en" and content.book_link("/book/999999") == "/book/999999"
+    assert content.book_link("/author/shakespeare") == "/author/shakespeare"
+
+    # the home page, read without its script
+    home = client.get("/").text
+    grid = home.split('id="grid" data-srv>')[1].split('<div id="state">')[0]
+    assert [int(i) for i in _re.findall(r'class="ttl-a" href="/book/(\d+)/', grid)] == first
+    assert 'src="https://www.gutenberg.org/cache/epub/900001/pg900001.cover.medium.jpg"' in grid and 'data-started="1"' in grid
+    assert 'href="https://www.gutenberg.org/cache/epub/900002/pg900002-images.html"' in grid and ">اقرأ</a>" in grid
+    cats = _re.findall(r'<a class="cc" href="/category/(\w+)"', home)
+    assert len(cats) == len([c for c in client.get("/api/meta").json()["categories"] if c["count"] + c["poems"]]) and "dra" in cats
+    assert '<b>مسرح</b><small>' in home and 'class="ic ic-dra"' in home
+    authors = _re.findall(r'<a class="av" href="/author/([^"?]+)"', home)
+    assert len(authors) == seo.HOME_AUTHORS and all(content.has_bio(a) for a in authors) and authors[0] == "shakespeare"
+    assert not _re.search(r'href="/book/\d+"', home) and 'id="research"' not in home and 'href="#research"' not in home
+    en = client.get("/?lang=en").text
+    assert '<a class="cc" href="/category/dra?lang=en"' in en and '<a class="av" href="/author/shakespeare?lang=en"' in en
+    assert ">Read</a>" in en and "Macbeth</a></h3>" in en
+    assert 'class="ttl-a"' not in client.get("/", params={"q": "hamlet"}).text  # a search shows its own results
+    assert all(a["bio"] == content.has_bio(a["key"]) for a in client.get("/api/meta").json()["authors"])
+
+    # the footer says what is the library's own, in every language; the sentence on the public domain stays
+    strings = seo.ui_strings(m.os.path.join(m.os.path.dirname(m.__file__), "..", "..", "frontend"))
+    assert strings["ar"]["legal1"] == ("روابط القراءة تقود إلى نسخ الكتب في مصادرها الأصلية القانونية، أما النبذ والمقالات "
+                                       "وسير المؤلفين فمحتوى أصلي خاص بالمكتبة.")
+    assert strings["ar"]["legal2"].startswith("حالة الملك العام تختلف من بلد لآخر")
+    for ui in pages.UI_LANGS:
+        assert strings[ui]["legal1"] != strings["en"]["legal1"] or ui == "en", ui
+        assert "external" not in strings[ui]["legal1"] and "خارجية" not in strings[ui]["legal1"], ui
+    assert 'data-i="legal1">روابط القراءة تقود' in home
+    assert "مكتب البحوث" not in client.get("/about").text and "research desk" not in client.get("/about?lang=en").text
+    conn.close()

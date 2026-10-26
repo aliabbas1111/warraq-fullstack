@@ -79,6 +79,16 @@ def author(key: str, ui: str) -> Text:
     return Text(*_pick(_load("authors.json", {}).get(key, {}), ui)) if key else Text()
 
 
+def has_bio(key: str) -> bool:
+    """Whether the library has written this author's biography (in any language)."""
+    return any(_load("authors.json", {}).get(key, {}).values()) if key else False
+
+
+def hand_picked() -> dict:
+    """books.json, the older file of the hand-picked books' texts, by Gutenberg number: {1122: {"ar": {...}, "en": {...}}}."""
+    return {int(k[4:]): v for k, v in _load("books.json", {}).items() if k.startswith("gid:")}
+
+
 def short_title(gid) -> str:
     """The short title the library gives a book whose catalogue title runs on into its subtitle (titles.json, by Gutenberg number)."""
     return _load("titles.json", {}).get(str(gid), "") if gid else ""
@@ -162,6 +172,26 @@ def words(*texts) -> int:
 
 _LINK = re.compile(r"\[([^\]\n]+)\]\(((?:/|https://)[^)\s]*)\)")
 _BOLD = re.compile(r"\*\*([^*\n]+)\*\*")
+_BOOK_LINK = re.compile(r"/book/(\d+)(?=[?#]|$)")
+_book_paths = {}  # (database, book id) -> the book page's own address
+
+
+def book_link(href: str) -> str:
+    """The texts link a book by its site id (/book/12?lang=en); the page itself lives at /book/12/crime-and-punishment
+    (pages.canonical_path), which the short address redirects to. Links go straight there, the rest of the link kept."""
+    m = _BOOK_LINK.match(href)
+    if not m:
+        return href
+    from . import db as _db, pages as _pages
+    key = (_db.db_path(), int(m.group(1)))
+    if key not in _book_paths:
+        conn = _db.connect()
+        try:
+            row = conn.execute("SELECT id, title, title_ar, lang, origin FROM books WHERE id=?", (key[1],)).fetchone()
+        finally:
+            conn.close()
+        _book_paths[key] = _pages.canonical_path(row) if row else ""
+    return (_book_paths[key] + href[m.end():]) if _book_paths[key] else href
 
 
 def inline(text: str) -> str:
@@ -171,7 +201,7 @@ def inline(text: str) -> str:
     def link(m):
         href = m.group(2).replace('"', "%22")
         if href.startswith("/"):
-            return '<a href="%s">%s</a>' % (href, m.group(1))
+            return '<a href="%s">%s</a>' % (book_link(href), m.group(1))
         return '<a href="%s" target="_blank" rel="noopener nofollow">%s</a>' % (href, m.group(1))
     return _BOLD.sub(r"<strong>\1</strong>", _LINK.sub(link, s))
 

@@ -25,7 +25,7 @@
     <link rel="preconnect" href="https://www.gutenberg.org">
     <link rel="dns-prefetch" href="https://covers.openlibrary.org">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alexandria:wght@600;700;800&family=Amiri:wght@400;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap">
-    <link rel="stylesheet" href="/style.css?v=26">
+    <link rel="stylesheet" href="/style.css?v=27">
     <meta name="google-site-verification" content="mr2m_OUyICgSG7KYmLlWVoiuB3-kiR-LwozvyM1Eqls" />
     <meta name="google-adsense-account" content="ca-pub-7058063023261152">
 </head>
@@ -53,7 +53,6 @@
                 <a href="#browse"><svg class="ic ic-nb" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z M8 7h7 M8 11h5"/></svg><span data-i="nav_browse">الكتب</span></a>
                 <a href="#poetry"><svg class="ic ic-poe" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M20.2 3.8C13 4 8 9 8 15v2h2c6 0 10.5-5 10.2-13.2z M4 21l6-6"/></svg><span data-i="nav_poetry">الشعر</span></a>
                 <a href="#authors"><svg class="ic ic-bio" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z M4 21a8 8 0 0 1 16 0"/></svg><span data-i="nav_authors">المؤلفون</span></a>
-                <a href="#research"><svg class="ic ic-sci" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M9 3h6 M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3 M8 15h8"/></svg><span data-i="nav_research">البحوث</span></a>
             </nav>
             <form class="search" id="searchForm" role="search">
                 <svg class="ic ic-search" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -106,7 +105,7 @@
                         <p class="lead" data-i="cats_p"></p>
                     </div>
                 </div>
-                <div class="catgrid" id="catGrid"></div>
+                <div class="catgrid" id="catGrid"><!--SEO:CATGRID--></div>
             </div>
         </section>
         <section class="intro-sec" id="library">
@@ -164,7 +163,7 @@
                         <button id="filtBtn" type="button" aria-controls="side" aria-expanded="false"></button>
                     </div>
                     <div id="beyond"></div>
-                    <div class="grid" id="grid"></div>
+                    <div class="grid" id="grid" data-srv><!--SEO:BOOKS--></div>
                     <div id="state"></div>
                     <div id="sentinel"></div>
                     <button class="more" id="moreBtn" type="button" hidden></button>
@@ -181,40 +180,8 @@
                         <p class="lead" data-i="authors_p"></p>
                     </div>
                 </div>
-                <div class="avs" id="avs"></div>
+                <div class="avs" id="avs"><!--SEO:AUTHORS--></div>
                 <button class="linkbtn" id="authMore" type="button" hidden></button>
-            </div>
-        </section>
-
-        <section id="research" class="research-sec reveal">
-            <div class="wrap">
-                <div class="sec-head">
-                    <span class="sec-ic" aria-hidden="true"><svg class="ic ic-sci" viewBox="0 0 24 24"><path pathLength="1" d="M9 3h6 M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3 M8 15h8"/></svg></span>
-                    <div>
-                        <h2 data-i="research_h"></h2>
-                        <p class="lead" data-i="research_p"></p>
-                    </div>
-                </div>
-                <div class="desks">
-                    <div class="desk" id="deskMed">
-                        <h3><span class="dk-ic med" aria-hidden="true"><svg class="ic ic-med" viewBox="0 0 24 24"><path pathLength="1" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z M12 8v8 M8 12h8"/></svg></span><span data-i="med_h"></span></h3>
-                        <p class="d" data-i="med_p"></p>
-                        <input id="rqMed" type="search" autocomplete="off" value="cardiology" data-iph="r_ph">
-                        <div class="topics" id="topicsMed"></div>
-                        <div class="papers" id="papersMed" aria-live="polite"></div>
-                        <h4 class="src-h" data-i="also_src"></h4>
-                        <div class="srcs" id="srcsMed"></div>
-                    </div>
-                    <div class="desk" id="deskEng">
-                        <h3><span class="dk-ic eng" aria-hidden="true"><svg class="ic ic-eng" viewBox="0 0 24 24"><path pathLength="1" d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M19 5l-2 2 M7 17l-2 2"/></svg></span><span data-i="eng_h"></span></h3>
-                        <p class="d" data-i="eng_p"></p>
-                        <input id="rqEng" type="search" autocomplete="off" value="control systems" data-iph="r_ph">
-                        <div class="topics" id="topicsEng"></div>
-                        <div class="papers" id="papersEng" aria-live="polite"></div>
-                        <h4 class="src-h" data-i="also_src"></h4>
-                        <div class="srcs" id="srcsEng"></div>
-                    </div>
-                </div>
             </div>
         </section>
     </main>
@@ -257,7 +224,7 @@
         </div>
     </footer>
 
-    <script src="/app.js?v=27"></script>
+    <script src="/app.js?v=28"></script>
 </body>
 
 </html>

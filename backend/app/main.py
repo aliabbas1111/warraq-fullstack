@@ -7,7 +7,7 @@ import secrets
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Query, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.exceptions import RequestValidationError
@@ -61,6 +61,7 @@ def book_json(r) -> dict:
         "ak": r["author_key"], "a": r["author_en"], "aa": r["author_ar"],
         "c": r["cat"], "o": r["origin"], "lg": r["lang"],
         "x": r["ext"], "k": r["curated"],  # Safahat / Open Library: the book's id there (modern.py)
+        "u": pages.canonical_path(r),  # the book page's own address (/book/<id> only redirects there)
     }
 
 
@@ -112,6 +113,8 @@ def create_app() -> FastAPI:
         db.init_db(conn)
         db.seed_curated(conn)
         db.prune_unreadable(conn)
+        pages.described_books(conn)  # read once now, not on the first visitor's page
+        home_meta(conn)
         conn.close()
         yield
 
@@ -167,6 +170,26 @@ def create_app() -> FastAPI:
         _meta_cache[db.db_path()] = (time.time() + 30, payload)
         return payload
 
+    def home_meta(conn, background=None):
+        """The numbers the home page's HTML shows, made when the server starts (lifespan): the last ones made, even if
+        a little old (the catalogue changes only with an import), are counted again after the page has gone out, so
+        no visitor waits the seconds a count of a million books takes."""
+        key = ("home", db.db_path())
+        hit = _meta_cache.get(key)
+        if not hit:
+            _meta_cache[key] = (time.time() + 300, build_meta(conn))
+        elif hit[0] <= time.time() and background:
+            _meta_cache[key] = (time.time() + 300, hit[1])  # one recount, however many pages ask meanwhile
+
+            def recount():
+                c = db.connect()
+                try:
+                    _meta_cache[key] = (time.time() + 300, build_meta(c))
+                finally:
+                    c.close()
+            background.add_task(recount)
+        return _meta_cache[key][1]
+
     def build_meta(conn):
         # a single poem (Wikisource) is counted as a poem, never as a book
         ws = wikisource.WS_KIND
@@ -179,9 +202,9 @@ def create_app() -> FastAPI:
         counts[ARABIC_CAT] = conn.execute("SELECT COUNT(*) FROM books WHERE lang='ar'").fetchone()[0] - all_poems
         cats = [dict({ui: v[ui] for ui in pages.UI_LANGS}, key=k, hue=v["hue"], count=counts.get(k, 0), poems=poems.get(k, 0))
                 for k, v in CATEGORIES.items()]
-        authors = [
+        authors = [  # bio: the library has written their biography (the home page lists them first)
             {"key": r["key"], "en": r["en"], "ar": r["ar"], "years": r["years"], "origin": r["origin"],
-             "count": r["n"], "cat": r["cat"] or "nov"}
+             "count": r["n"], "cat": r["cat"] or "nov", "bio": content.has_bio(r["key"])}
             for r in conn.execute(
                 "SELECT a.*, COUNT(b.id) n,"
                 " (SELECT cat FROM books WHERE author_key=a.key ORDER BY ord LIMIT 1) cat"
@@ -297,10 +320,18 @@ def create_app() -> FastAPI:
             total = min(total, COUNT_CAP)
         else:
             total = conn.execute("SELECT COUNT(*) FROM books" + clause, args).fetchone()[0]
-        rows = conn.execute(
-            "SELECT * FROM books" + clause + " ORDER BY " + order + " LIMIT ? OFFSET ?",
-            args + oargs + [limit, offset],
-        ).fetchall()
+        if sort == "def" and not query:  # browsing, not searching: the described books first
+            def keep(r):  # the filters of the clause above, for one described book
+                if cat and not (r["lang"] == "ar" if cat == ARABIC_CAT else r["cat"] == cat):
+                    return False
+                return ((org not in ("a", "w") or r["origin"] == org) and (not ak or r["author_key"] == ak)
+                        and (not au or au in (r["author_ar"], r["author_en"])) and (not bl or r["lang"] == bl.lower()))
+            rows = pages.described_first(conn, clause, args, keep, offset, limit)
+        else:
+            rows = conn.execute(
+                "SELECT * FROM books" + clause + " ORDER BY " + order + " LIMIT ? OFFSET ?",
+                args + oargs + [limit, offset],
+            ).fetchall()
         # how many of them are single poems, told apart when that is cheap. Every poem is Arabic, in "poe", by an
         # Arab author: those filters either rule poems out or say nothing, so the table itself is never read
         poems = None
@@ -411,13 +442,15 @@ def create_app() -> FastAPI:
         return {"Content-Security-Policy": security.AD_CSP.format(nonce=nonce)} if nonce else {}
 
     @app.get("/", include_in_schema=False)
-    def home(request: Request, lang: str = Query("", max_length=5)):
-        """index.html plus what only the server knows: canonical links, structured data, verification tags."""
+    def home(request: Request, background: BackgroundTasks, lang: str = Query("", max_length=5), conn=Depends(get_conn)):
+        """index.html plus what only the server knows: canonical links, structured data, verification tags, and the
+        categories, first books and authors the script would otherwise be the only one to show."""
         if not os.path.isfile(os.path.join(frontend, "index.html")):
             raise HTTPException(404, "not found")
         nonce = _ad_nonce()
         return HTMLResponse(seo.home_html(frontend, pages.site_base(request), pages.visitor_ui(request, lang), nonce,
-                                          search=bool(request.query_params.get("q", "").strip())),
+                                          search=bool(request.query_params.get("q", "").strip()), conn=conn,
+                                          meta=home_meta(conn, background)),
                             headers=_ad_headers(nonce))
 
     @app.get("/category/{key}", include_in_schema=False)

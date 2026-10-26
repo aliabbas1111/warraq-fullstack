@@ -274,7 +274,6 @@ def _about(ui, n):
 <li><b>ديوان العرب:</b> {num("poems")} قصيدة لكبار الشعراء من الجاهلية إلى العصر الحديث، من ويكي مصدر.</li>
 <li><b>{num("authors")} مؤلف</b> و{num("cats")} تصنيفاً، من الرواية والشعر إلى التاريخ والفلسفة والطب.</li>
 <li><b>{num("modern")} كتاب عربي حديث</b> (روايات وتنمية بشرية وغيرها): ما نشرته «صفحات» (مؤسسة هنداوي) مجاناً بإذن أصحابه تقرؤه هناك كاملاً، وما حقوقه محفوظة نعرض بيانات فهرسته ونوصلك إلى صفحته في Open Library.</li>
-<li><b>مكتب البحوث:</b> أوراق علمية طبية وهندسية مجانية الوصول، نبحث عنها في OpenAlex.</li>
 </ul>
 <h2>كيف نعمل</h2>
 <p>لا نستضيف ملفات الكتب ولا نبيعها. نجمع بيانات الفهرسة من مصادر مفتوحة، ونرتّبها ونصنّفها ونعرّب عناوين الكتب المشهورة وأسماء مؤلفيها، ونكتب لأشهرها تعريفات أصيلة لا ننقلها من غيرنا، ثم نوصلك إلى صفحة القراءة في المصدر الأصلي. القراءة مجانية تماماً.</p>
@@ -300,7 +299,6 @@ def _about(ui, n):
 <li><b>Diwan of the Arabs:</b> {num("poems")} poems by the great Arab poets, from pre-Islamic times to the modern era, from Arabic Wikisource.</li>
 <li><b>{num("authors")} authors</b> and {num("cats")} categories, from novels and poetry to history, philosophy and medicine.</li>
 <li><b>{num("modern")} modern Arabic books</b> (novels, self-development and more): those Safahat (Hindawi Foundation) publishes free with their owners' permission are read in full there; for books under copyright we show the catalogue record and link to their Open Library page.</li>
-<li><b>The research desk:</b> free-to-read medical and engineering papers, found through OpenAlex.</li>
 </ul>
 <h2>How it works</h2>
 <p>We do not host or sell book files. We gather catalogue data from open sources, sort and categorise it, translate the titles of famous books and the names of their authors, write original introductions to the best-known ones, and send you to the reading page at the original source. Reading is completely free.</p>
