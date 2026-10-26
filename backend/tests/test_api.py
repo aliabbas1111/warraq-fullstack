@@ -1220,7 +1220,8 @@ def test_site_icons_fit_google(client):
 
 def test_google_analytics_on_every_page(client, monkeypatch):
     loader = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-RLKB7D593G"></script>'
-    setup = 'src="/ga.js?v=1" data-id="G-RLKB7D593G"></script>'
+    loader2 = '<script async src="https://www.googletagmanager.com/gtag/js?id=G-GB3DX32Q8E"></script>'
+    setup = 'src="/ga.js?v=2" data-id="G-RLKB7D593G G-GB3DX32Q8E"></script>'  # both properties
     gtm = 'src="/gtm.js?v=1" data-id="GTM-KSBG6LCR"></script>'
     frame = '<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KSBG6LCR"'
     for url in ("/", "/?lang=en", "/category/nov", "/author/shakespeare", "/book/1", "/about", "/privacy", "/terms",
@@ -1228,14 +1229,15 @@ def test_google_analytics_on_every_page(client, monkeypatch):
         r = client.get(url, follow_redirects=True)
         head = r.text.split("</head>")[0]
         csp = r.headers["content-security-policy"]
-        assert head.count("googletagmanager.com/gtag/js") == 1 and setup in head, url  # once, in the head
+        assert head.count("googletagmanager.com/gtag/js") == 2 and setup in head, url  # a loader per property, in the head
+        assert head.index("gtag/js?id=G-GB3DX32Q8E") < head.index(setup), url  # the loaders before the setup
         assert gtm in head and head.index(setup) < head.index(gtm), url  # Tag Manager after the consent defaults
         assert r.text.split("<body>")[1].lstrip().startswith(frame), url  # and its frame first in the body
         if "'nonce-" in csp:  # the pages with ads: both scripts carry the nonce
             nonce = csp.split("'nonce-")[1].split("'")[0]
             assert r.text.count("<script") == r.text.count('<script nonce="%s"' % nonce), url
         else:  # the strict policy lets Google's loader in and its reports out, and nothing inline
-            assert loader in head and "script-src 'self' https://www.googletagmanager.com;" in csp, url
+            assert loader in head and loader2 in head and "script-src 'self' https://www.googletagmanager.com;" in csp, url
             assert "https://*.google-analytics.com" in csp and "'unsafe-inline' https://fonts" in csp and "script-src 'self' 'unsafe" not in csp
             assert "frame-src https://www.googletagmanager.com;" in csp, url
     tm = client.get("/gtm.js")

@@ -602,8 +602,9 @@ def ad_head() -> str:
             'crossorigin="anonymous"></script>' % esc(ADSENSE_ACCOUNT))
 
 
-# Google Analytics 4 (the site's property). ANALYTICS=0 turns it off (a test copy); GA_ID replaces the property.
-GA_ID = os.environ.get("GA_ID", "").strip() or "G-RLKB7D593G"
+# Google Analytics 4: the site's properties (G-GB3DX32Q8E added beside the first on 27 October 2026). ANALYTICS=0 turns
+# them off (a test copy); GA_ID replaces them (several separated by commas).
+GA_IDS = tuple(x.strip() for x in (os.environ.get("GA_ID", "") or "G-RLKB7D593G,G-GB3DX32Q8E").split(",") if x.strip())
 
 
 def analytics_on() -> bool:
@@ -615,13 +616,14 @@ GTM_ID = os.environ.get("GTM_ID", "").strip() or "GTM-KSBG6LCR"
 
 
 def analytics_head() -> str:
-    """Google's loader, and the site's own /ga.js and /gtm.js in place of Google's inline lines (no inline script:
-    CSP). Tag Manager comes after ga.js, so its tags start under the consent defaults set there."""
+    """Google's loader for each property, as each one's own snippet has it, and the site's own /ga.js and /gtm.js in
+    place of Google's inline lines (no inline script: CSP). Tag Manager comes after ga.js, so its tags start under the
+    consent defaults set there."""
     if not analytics_on():
         return ""
-    return ('<script async src="https://www.googletagmanager.com/gtag/js?id=%s"></script>\n'
-            '<script src="/ga.js?v=1" data-id="%s"></script>\n'
-            '<script src="/gtm.js?v=1" data-id="%s"></script>' % (esc(GA_ID), esc(GA_ID), esc(GTM_ID)))
+    return ("".join('<script async src="https://www.googletagmanager.com/gtag/js?id=%s"></script>\n' % esc(i) for i in GA_IDS)
+            + '<script src="/ga.js?v=2" data-id="%s"></script>\n'
+            '<script src="/gtm.js?v=1" data-id="%s"></script>' % (esc(" ".join(GA_IDS)), esc(GTM_ID)))
 
 
 def gtm_noscript() -> str:
