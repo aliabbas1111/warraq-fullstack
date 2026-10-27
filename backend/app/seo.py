@@ -20,7 +20,7 @@ from .wikisource import WS_KIND
 from .catalog import ARABIC_CAT, CATEGORIES
 from .pages import (ARTICLES_NAME, BRAND, CSS, LOGO_SVG, OG_LOCALE, SEARCH_ICON, T, UI_LANG_SHORT, UI_LANGS,
                     _authors, ad_head, analytics_head, book_author, book_title, canonical_path, described_books,
-                    banner, described_first, esc, gtm_noscript, is_arabic, lang_menu, lang_q, legal_links, own_text, read_links,
+                    described_first, esc, gtm_noscript, is_arabic, lang_menu, lang_q, legal_links, own_text, read_links,
                     shown_title, site_head)
 
 FOUNDER = {"@type": "Person", "name": "Ali Abbas Taher", "alternateName": "علي عباس طاهر"}  # who runs the library
@@ -392,9 +392,7 @@ def home_html(frontend_dir: str, base: str, ui: str = "ar", nonce: str = "", sea
     lists = _home_lists(conn, meta, frontend_dir, ui, books=not search) if conn is not None and meta else {}
     page = (_home_template(frontend_dir, ui).replace("<!--SEO:HEAD-->", head).replace("<!--SEO:BODY-->", gtm_noscript()).replace("<!--SEO:CATS-->", links)
             .replace("<!--SEO:INTRO-->", _home_intro(ui)).replace("<!--SEO:CATGRID-->", lists.get("cats", ""))
-            .replace("<!--SEO:BOOKS-->", lists.get("books", "")).replace("<!--SEO:AUTHORS-->", lists.get("authors", ""))
-            .replace("<!--SEO:AD1-->", '<div class="wrap">%s</div>' % banner(0, ui) if nonce and banner(0, ui) else "")
-            .replace("<!--SEO:AD2-->", '<div class="wrap">%s</div>' % banner(1, ui) if nonce and banner(1, ui) else ""))
+            .replace("<!--SEO:BOOKS-->", lists.get("books", "")).replace("<!--SEO:AUTHORS-->", lists.get("authors", "")))
     if search:  # /?q=...: the same page showing search results, not a page of its own for search engines
         page = page.replace('<meta name="robots" content="index,follow">', '<meta name="robots" content="noindex,follow">', 1)
     return with_nonce(page, nonce)
@@ -440,8 +438,8 @@ def _shell(ui, base, path, title, desc, body, ld, page=1, extra_q="", extra_css=
 <form class="sbox" action="/#browse" method="get" role="search">{icon}<input type="search" name="q" placeholder="{ph}" aria-label="{ph}"><button type="submit">{search}</button></form>
 <nav><a href="/#browse">{all}</a>{menu}</nav></div></header>
 <main class="wrap">
-{ad_top}{body}
-{ad_bottom}<footer>{legal}<p>{note}</p></footer>
+{body}
+<footer>{legal}<p>{note}</p></footer>
 </main>
 </body>
 </html>
@@ -450,8 +448,7 @@ def _shell(ui, base, path, title, desc, body, ld, page=1, extra_q="", extra_css=
            brand=esc(BRAND[ui]), base=esc(base), ld=ld, css=CSS, extra=EXTRA_CSS + extra_css, logo=LOGO_SVG, icon=SEARCH_ICON,
            ph=esc(t["ph"]), search=esc(t["search"]), all=esc(t["all"]), menu=lang_menu(ui, lambda c: path + "?lang=" + c),
            body=body,
-           note=esc(t["note"]), legal=legal_links(ui), adsense=site_head(), gtm_ns=gtm_noscript(), ad_head=ad_head() if nonce else "",
-           ad_top=banner(0, ui) if nonce else "", ad_bottom=banner(1, ui) if nonce else "")
+           note=esc(t["note"]), legal=legal_links(ui), adsense=site_head(), gtm_ns=gtm_noscript(), ad_head=ad_head() if nonce else "")
 
 
 def _book_list(conn, rows, ui) -> str:

@@ -2034,24 +2034,6 @@ a.av {
     background: var(--card)
 }
 
-/* the second ad network's banners (pages.banner): the "ads" label only once a banner has drawn */
-.adslot {
-    margin: 16px auto;
-    text-align: center;
-    overflow: hidden
-}
-
-.adslot small {
-    display: block;
-    margin: 0 0 4px;
-    color: var(--muted);
-    font-size: .72rem
-}
-
-.adslot:not(:has([data-banner-id] *)) small {
-    display: none
-}
-
 .cvimg.ok,
 html:not(.js) .cvimg[src] {
     /* without the script, the covers the server put in the page show as they are */
