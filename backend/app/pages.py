@@ -107,7 +107,7 @@ T = {
         "home": "الرئيسية", "all": "كل الكتب", "views": "مشاهدة", "likes": "إعجاب", "like": "أعجبني", "liked": "أعجبك", "similar": "كتب تشبه هذا الكتاب", "free": "كتاب مجاني ومسقط عنه حق النشر",
         "note": "الموقع فهرس يدلّك على المصادر المفتوحة والقانونية ولا يستضيف الكتب. كتب الملك العام هنا في الملكية العامة في الولايات المتحدة وقد يختلف وضعها في بلدك، أما الكتب العربية الحديثة فحقوقها لأصحابها ونعرض بيانات فهرستها فقط.",
         "page_gut": "صفحة الكتاب في Gutenberg", "page_ht": "HathiTrust", "arch": "Internet Archive", "ol": "Open Library",
-        "menu_lang": "اللغة", "notfound": "الصفحة غير موجودة", "dir": "rtl",
+        "ad": "إعلانات", "menu_lang": "اللغة", "notfound": "الصفحة غير موجودة", "dir": "rtl",
         "nf_p": "ربما نُقلت الصفحة التي تبحث عنها أو كُتب الرابط بشكل خاطئ. ابحث في المكتبة أو عد إلى الصفحة الرئيسية.",
         "nf_home": "العودة إلى الرئيسية", "nf_try": "أو تصفّح أحد التصنيفات:",
         "share": "شارك:", "wa": "واتساب", "tg": "تيليجرام", "fb": "فيسبوك", "copy": "نسخ الرابط", "copied": "تم النسخ ✓",
@@ -140,7 +140,7 @@ T = {
         "home": "Home", "all": "All books", "views": "views", "likes": "likes", "like": "Like", "liked": "Liked", "similar": "Similar books", "free": "Free public-domain book",
         "note": "This site is an index that points to open and legal sources; it does not host the books. Public-domain books here are free in the United States and may be protected in your country; modern Arabic books belong to their rights holders, and we only show their catalogue records.",
         "page_gut": "Gutenberg book page", "page_ht": "HathiTrust", "arch": "Internet Archive", "ol": "Open Library",
-        "menu_lang": "Language", "notfound": "Page not found", "dir": "ltr",
+        "ad": "Advertisements", "menu_lang": "Language", "notfound": "Page not found", "dir": "ltr",
         "nf_p": "The page you are looking for may have moved, or the link is mistyped. Search the library or go back home.",
         "nf_home": "Back to home", "nf_try": "Or browse a category:",
         "share": "Share:", "wa": "WhatsApp", "tg": "Telegram", "fb": "Facebook", "copy": "Copy link", "copied": "Copied ✓",
@@ -172,7 +172,7 @@ T = {
         "home": "首页", "all": "全部图书", "views": "次浏览", "like": "点赞", "liked": "已点赞", "similar": "相似图书",
         "note": "本站是一个指向开放、合法来源的索引，并不存放图书。这里的公有领域图书在美国属于公有领域，在你所在的国家可能仍受保护；现代阿拉伯语图书的版权归权利人所有，我们只展示其书目信息。",
         "page_gut": "古腾堡图书页面", "page_ht": "HathiTrust", "arch": "互联网档案馆", "ol": "Open Library",
-        "menu_lang": "语言", "notfound": "页面不存在", "dir": "ltr",
+        "ad": "广告", "menu_lang": "语言", "notfound": "页面不存在", "dir": "ltr",
         "nf_p": "你要找的页面可能已被移动，或者链接输入有误。请在图书馆中搜索，或返回首页。",
         "nf_home": "返回首页", "nf_try": "或者浏览一个分类：",
         "share": "分享：", "wa": "WhatsApp", "tg": "Telegram", "fb": "Facebook", "copy": "复制链接", "copied": "已复制 ✓",
@@ -202,7 +202,7 @@ T = {
         "home": "Accueil", "all": "Tous les livres", "views": "vues", "like": "J’aime", "liked": "Aimé", "similar": "Livres similaires",
         "note": "Ce site est un index qui renvoie vers des sources ouvertes et légales ; il n’héberge pas les livres. Les livres du domaine public présentés ici sont libres aux États-Unis et peuvent être protégés dans votre pays ; les livres arabes modernes appartiennent à leurs ayants droit, et nous n’en montrons que la notice.",
         "page_gut": "Page du livre sur Gutenberg", "page_ht": "HathiTrust", "arch": "Internet Archive", "ol": "Open Library",
-        "menu_lang": "Langue", "notfound": "Page introuvable", "dir": "ltr",
+        "ad": "Publicités", "menu_lang": "Langue", "notfound": "Page introuvable", "dir": "ltr",
         "nf_p": "La page que vous cherchez a peut-être été déplacée, ou le lien est mal saisi. Cherchez dans la bibliothèque ou revenez à l’accueil.",
         "nf_home": "Retour à l’accueil", "nf_try": "Ou parcourez une catégorie :",
         "share": "Partager :", "wa": "WhatsApp", "tg": "Telegram", "fb": "Facebook", "copy": "Copier le lien", "copied": "Copié ✓",
@@ -232,7 +232,7 @@ T = {
         "home": "Inicio", "all": "Todos los libros", "views": "vistas", "like": "Me gusta", "liked": "Te gusta", "similar": "Libros similares",
         "note": "Este sitio es un índice que remite a fuentes abiertas y legales; no aloja los libros. Los libros de dominio público que aparecen aquí son libres en Estados Unidos y pueden estar protegidos en tu país; los libros árabes modernos pertenecen a sus titulares de derechos, y solo mostramos su ficha de catálogo.",
         "page_gut": "Página del libro en Gutenberg", "page_ht": "HathiTrust", "arch": "Internet Archive", "ol": "Open Library",
-        "menu_lang": "Idioma", "notfound": "Página no encontrada", "dir": "ltr",
+        "ad": "Anuncios", "menu_lang": "Idioma", "notfound": "Página no encontrada", "dir": "ltr",
         "nf_p": "Puede que la página que buscas se haya movido o que el enlace esté mal escrito. Busca en la biblioteca o vuelve al inicio.",
         "nf_home": "Volver al inicio", "nf_try": "O explora una categoría:",
         "share": "Compartir:", "wa": "WhatsApp", "tg": "Telegram", "fb": "Facebook", "copy": "Copiar enlace", "copied": "Copiado ✓",
@@ -262,7 +262,7 @@ T = {
         "home": "Início", "all": "Todos os livros", "views": "visualizações", "like": "Curtir", "liked": "Curtido", "similar": "Livros semelhantes",
         "note": "Este site é um índice que aponta para fontes abertas e legais; ele não hospeda os livros. Os livros em domínio público aqui são livres nos Estados Unidos e podem estar protegidos no seu país; os livros árabes modernos pertencem aos detentores dos direitos, e mostramos apenas a ficha catalográfica.",
         "page_gut": "Página do livro no Gutenberg", "page_ht": "HathiTrust", "arch": "Internet Archive", "ol": "Open Library",
-        "menu_lang": "Idioma", "notfound": "Página não encontrada", "dir": "ltr",
+        "ad": "Anúncios", "menu_lang": "Idioma", "notfound": "Página não encontrada", "dir": "ltr",
         "nf_p": "A página que você procura pode ter sido movida, ou o link foi digitado errado. Pesquise na biblioteca ou volte ao início.",
         "nf_home": "Voltar ao início", "nf_try": "Ou navegue por uma categoria:",
         "share": "Compartilhar:", "wa": "WhatsApp", "tg": "Telegram", "fb": "Facebook", "copy": "Copiar link", "copied": "Copiado ✓",
@@ -292,7 +292,7 @@ T = {
         "home": "ホーム", "all": "すべての本", "views": "回閲覧", "like": "いいね", "liked": "いいね済み", "similar": "似ている本",
         "note": "このサイトはオープンで合法的な情報源へ案内する索引であり、本そのものは掲載していません。ここにあるパブリックドメインの本は米国で自由に利用できますが、お住まいの国では保護されている場合があります。現代アラビア語の本の権利は権利者に帰属し、当サイトでは書誌情報のみを表示しています。",
         "page_gut": "Gutenberg の書籍ページ", "page_ht": "HathiTrust", "arch": "インターネット・アーカイブ", "ol": "Open Library",
-        "menu_lang": "言語", "notfound": "ページが見つかりません", "dir": "ltr",
+        "ad": "広告", "menu_lang": "言語", "notfound": "ページが見つかりません", "dir": "ltr",
         "nf_p": "お探しのページは移動したか、リンクが間違っている可能性があります。図書館内を検索するか、ホームに戻ってください。",
         "nf_home": "ホームに戻る", "nf_try": "またはカテゴリーから探す：",
         "share": "共有：", "wa": "WhatsApp", "tg": "Telegram", "fb": "Facebook", "copy": "リンクをコピー", "copied": "コピーしました ✓",
@@ -322,7 +322,7 @@ T = {
         "home": "Startseite", "all": "Alle Bücher", "views": "Aufrufe", "like": "Gefällt mir", "liked": "Gefällt Ihnen", "similar": "Ähnliche Bücher",
         "note": "Diese Website ist ein Verzeichnis, das auf offene und legale Quellen verweist; die Bücher selbst liegen nicht hier. Gemeinfreie Bücher sind in den USA frei und können in Ihrem Land noch geschützt sein; moderne arabische Bücher gehören ihren Rechteinhabern, und wir zeigen nur ihre Katalogdaten.",
         "page_gut": "Buchseite bei Gutenberg", "page_ht": "HathiTrust", "arch": "Internet Archive", "ol": "Open Library",
-        "menu_lang": "Sprache", "notfound": "Seite nicht gefunden", "dir": "ltr",
+        "ad": "Anzeigen", "menu_lang": "Sprache", "notfound": "Seite nicht gefunden", "dir": "ltr",
         "nf_p": "Die gesuchte Seite wurde vielleicht verschoben, oder der Link ist falsch geschrieben. Durchsuchen Sie die Bibliothek oder kehren Sie zur Startseite zurück.",
         "nf_home": "Zur Startseite", "nf_try": "Oder stöbern Sie in einer Kategorie:",
         "share": "Teilen:", "wa": "WhatsApp", "tg": "Telegram", "fb": "Facebook", "copy": "Link kopieren", "copied": "Kopiert ✓",
@@ -420,6 +420,7 @@ footer p{margin:0}
 .nf-cats a:hover{border-color:var(--brand-2);color:var(--brand)}
 @media (max-width:640px){.book{grid-template-columns:1fr;justify-items:center}.cover{width:200px}.book>div{width:100%}dl{grid-template-columns:1fr}}
 .book h2.facts-h{font-size:1rem;margin:18px 0 6px;color:var(--muted);font-weight:600}.rights.pd{background:var(--soft);color:var(--ink)}.rights a{font-weight:600}.crumbs span{color:var(--muted)}.about p+p{margin-top:.6em}.about small a{font-weight:600}
+.adslot{margin:16px auto;text-align:center;overflow:hidden}.adslot small{display:block;margin:0 0 4px;color:var(--muted);font-size:.72rem}.adslot:not(:has([data-banner-id] *)) small{display:none}
 """
 
 LIKE_JS = r'''<script>(function(){var b=document.getElementById('likeBtn');if(!b)return;var heart=function(f){return '<svg width="18" height="18" viewBox="0 0 24 24" fill="'+f+'" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.4-9.3-9A5.4 5.4 0 0 1 12 6.2 5.4 5.4 0 0 1 21.3 12C19 16.6 12 21 12 21z"/></svg>';};
@@ -599,7 +600,29 @@ def ad_head() -> str:
     if not ads_on():
         return ""
     return ('<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=%s" '
-            'crossorigin="anonymous"></script>' % esc(ADSENSE_ACCOUNT))
+            'crossorigin="anonymous"></script>' % esc(ADSENSE_ACCOUNT)) + banner_head()
+
+
+# A second network's banners, added at the owner's request on 27 October 2026 (js.mbidadm.com, account 469940): its
+# loader goes beside AdSense's code (ad_head), and its two banners under the header and before the footer of the same
+# pages. ADS=0 or BANNERS=0 turns them off.
+BANNER_SRC, BANNER_ACCOUNT = "https://js.mbidadm.com/static/scripts.js", "469940"
+BANNER_IDS = ("2030498", "2030499")  # under the header, before the footer
+
+
+def banners_on() -> bool:
+    return ads_on() and os.environ.get("BANNERS", "1").strip() != "0"
+
+
+def banner_head() -> str:
+    return ('\n<script async src="%s" data-admpid="%s"></script>' % (BANNER_SRC, BANNER_ACCOUNT)) if banners_on() else ""
+
+
+def banner(place: int, ui: str) -> str:
+    """The network's banner for a place of the page (0 under the header, 1 before the footer), labelled as an ad."""
+    if not banners_on():
+        return ""
+    return '<div class="adslot"><small>%s</small><div data-banner-id="%s"></div></div>' % (esc(T[ui]["ad"]), BANNER_IDS[place])
 
 
 # Google Analytics 4: the site's properties (G-GB3DX32Q8E added beside the first on 27 October 2026). ANALYTICS=0 turns
@@ -1102,7 +1125,7 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
 <form class="sbox" action="/#browse" method="get" role="search">{search_icon}<input type="search" name="q" placeholder="{ph}" aria-label="{ph}"><button type="submit">{search}</button></form>
 <nav><a href="/#browse">{all}</a>{menu}</nav></div></header>
 <main class="wrap">
-<p class="crumbs"><a href="/">{home}</a> / <a href="/category/{catkey}">{cat_name}</a> / <span>{title}</span></p>
+{ad_top}<p class="crumbs"><a href="/">{home}</a> / <a href="/category/{catkey}">{cat_name}</a> / <span>{title}</span></p>
 <article class="book">
 <div class="cover" style="--h:{hue}"><span class="cv-fb"><span class="cv-cat">{cat_name}</span><span class="cv-title">{title}</span><span class="cv-auth">{author}</span></span><img id="cvimg" alt="{alt}" decoding="async" referrerpolicy="no-referrer"></div>
 <div>
@@ -1119,7 +1142,7 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
 </article>
 {about}
 {rel}
-<footer>{legal}<p>{note}</p></footer>
+{ad_bottom}<footer>{legal}<p>{note}</p></footer>
 </main>
 {cv_script}
 {like_js}
@@ -1136,6 +1159,7 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
            locale=OG_LOCALE[ui], adsense=site_head(), gtm_ns=gtm_noscript(),
            # far from the read buttons (an ad must not invite a mistaken click); only with a nonce to run it
            ad_head=ad_head() if nonce and ads and indexable else "",
+           ad_top=banner(0, ui) if nonce and ads and indexable else "", ad_bottom=banner(1, ui) if nonce and ads and indexable else "",
            robots="index,follow,max-image-preview:large" if indexable else "noindex,follow", facts_h=esc(t["facts_h"]))
     # the Content-Security-Policy of this response only lets scripts carrying its nonce run
     return page.replace("<script", '<script nonce="%s"' % esc(nonce)) if nonce else page
