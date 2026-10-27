@@ -603,14 +603,14 @@ def test_pages_open_in_the_visitors_language(client):
     assert "set-cookie" not in client.get("/?lang=en", headers={"sec-fetch-site": "cross-site"}).headers
     client.cookies.clear()  # the test client kept that choice, as a browser would: start again without one
     privacy = client.get("/privacy").text  # and the privacy policy says so, dated
-    assert "warraq_lang" in privacy and "اختيارك للغة والمظهر" not in privacy and "آخر تحديث: 24 أكتوبر 2026" in privacy
+    assert "warraq_lang" in privacy and "اختيارك للغة والمظهر" not in privacy and "آخر تحديث: 27 أكتوبر 2026" in privacy
     assert "<p>نعرض إعلانات من خلال Google AdSense" in privacy and "قد نعرض إعلانات" not in privacy
     assert "والبرتغالية واليابانية والألمانية" in privacy and "(ar أو en)" not in privacy  # the eight languages, dated
     en_privacy = client.get("/privacy?lang=en").text
     assert "Our site sets the language cookie above" in en_privacy and "Portuguese, Japanese and German" in en_privacy
     terms = client.get("/terms").text  # the terms changed when the ads came back
-    assert "آخر تحديث: 24 أكتوبر 2026" in terms and "عبر Google AdSense" in terms
-    assert "bauval.org" not in privacy and "bauval.org" not in en_privacy  # Google AdSense is the only network
+    assert "آخر تحديث: 27 أكتوبر 2026" in terms and "عبر Google AdSense" in terms
+    assert "bauval.org" not in privacy and "bauval.org" not in en_privacy  # the old native banner stays out
 
 
 def test_the_eight_languages(client):
@@ -664,7 +664,7 @@ def test_the_eight_languages(client):
     assert 'href="/takedown?lang=de&amp;u=' in de and '<meta property="og:locale" content="de_DE">' in de
     # the long legal texts are written in Arabic and English: the others show the English one, and say so
     es = client.get("/privacy?lang=es").text
-    assert "Última actualización: 24 de octubre de 2026" in es and legal.L["es"]["en_only"] in es and '<div lang="en">' in es
+    assert "Última actualización: 27 de octubre de 2026" in es and legal.L["es"]["en_only"] in es and '<div lang="en">' in es
     assert "Política de privacidad" in es and "Third-party vendors, including Google" in es
     ja = client.get("/contact?lang=ja").text
     assert "お名前" in ja and "一般的な質問" in ja and 'action="/contact?lang=ja"' in ja and legal.L["ja"]["en_only"] not in ja
@@ -1479,3 +1479,33 @@ def test_described_books_come_first(client):
     assert 'data-i="legal1">روابط القراءة تقود' in home
     assert "مكتب البحوث" not in client.get("/about").text and "research desk" not in client.get("/about?lang=en").text
     conn.close()
+
+
+def test_second_network_banners(client, monkeypatch):
+    """The second network's loader and its two banners (pages.banner) are on the pages with content of their own,
+    beside AdSense's code and carrying the page's nonce; never on the legal, contact or 404 pages, nor on a book page
+    without a text of its own. The privacy policy and the terms name the network. BANNERS=0 takes them off."""
+    import json as _json
+    from app import db
+    conn = db.connect()
+    conn.execute("UPDATE books SET gid=900001 WHERE id=2")  # Macbeth, described
+    conn.execute("INSERT INTO book_descriptions(gid,en,en_ctx,ar,ar_ctx) VALUES(900001,?,'[]','[]','[]')", (_json.dumps(["Macbeth."]),))
+    conn.commit()
+    conn.close()
+    loader = 'async src="https://js.mbidadm.com/static/scripts.js" data-admpid="469940"></script>'
+    slots = ('<div data-banner-id="2030498"></div>', '<div data-banner-id="2030499"></div>')
+    for url in ("/", "/?lang=en", "/category/dra", "/author/shakespeare", "/book/2", "/articles"):
+        r = client.get(url, follow_redirects=True)
+        nonce = r.headers["content-security-policy"].split("'nonce-")[1].split("'")[0]
+        head = r.text.split("</head>")[0]
+        assert ('<script nonce="%s" ' % nonce + loader) in head and "adsbygoogle.js" in head, url
+        assert all(r.text.count(s) == 1 for s in slots) and r.text.index(slots[0]) < r.text.index(slots[1]), url
+        assert '<div class="adslot"><small>' in r.text, url
+    for url in ("/about", "/privacy", "/terms", "/contact", "/no/such/page", "/book/1"):  # Hamlet has no text here
+        r = client.get(url, follow_redirects=True)
+        assert "mbidadm" not in r.text.split("</head>")[0] and "<div data-banner-id" not in r.text, url
+    for url in ("/privacy", "/privacy?lang=en", "/terms", "/terms?lang=en"):
+        assert "js.mbidadm.com" in client.get(url).text, url
+    monkeypatch.setenv("BANNERS", "0")
+    home = client.get("/").text
+    assert "mbidadm" not in home and "<div data-banner-id" not in home and "adsbygoogle.js" in home
