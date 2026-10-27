@@ -19,11 +19,11 @@ from urllib.parse import parse_qs
 from . import content, stats
 from .pages import BRAND, LEGAL, T, UI_LANGS, esc, lang_q
 
-# each page its own date: both changed when the site's Google AdSense ads came back
-UPDATED = {"privacy": {"ar": "24 أكتوبر 2026", "en": "24 October 2026", "zh": "2026年10月24日", "fr": "24 octobre 2026",
-                       "es": "24 de octubre de 2026", "pt": "24 de outubro de 2026", "ja": "2026年10月24日", "de": "24. Oktober 2026"},
-           "terms": {"ar": "24 أكتوبر 2026", "en": "24 October 2026", "zh": "2026年10月24日", "fr": "24 octobre 2026",
-                     "es": "24 de octubre de 2026", "pt": "24 de outubro de 2026", "ja": "2026年10月24日", "de": "24. Oktober 2026"}}
+# each page its own date: both changed when a second ad network's banners were added (27 October 2026)
+UPDATED = {"privacy": {"ar": "27 أكتوبر 2026", "en": "27 October 2026", "zh": "2026年10月27日", "fr": "27 octobre 2026",
+                       "es": "27 de octubre de 2026", "pt": "27 de outubro de 2026", "ja": "2026年10月27日", "de": "27. Oktober 2026"},
+           "terms": {"ar": "27 أكتوبر 2026", "en": "27 October 2026", "zh": "2026年10月27日", "fr": "27 octobre 2026",
+                     "es": "27 de octubre de 2026", "pt": "27 de outubro de 2026", "ja": "2026年10月27日", "de": "27. Oktober 2026"}}
 EMAIL_DEFAULT = "alwarraqibrary@gmail.com"  # the library's mailbox
 PAGES = ("about", "privacy", "terms", "contact", "takedown")
 THIN_PAGES = ("contact", "takedown")  # forms with a few lines around them: reachable from every page, not search results
@@ -335,6 +335,7 @@ def _privacy(ui):
 <li>يمكنك إيقاف الإعلانات المخصّصة من <a href="https://www.google.com/settings/ads" rel="noopener" target="_blank">إعدادات الإعلانات في Google</a>، كما يمكنك إيقاف استخدام موردين آخرين لملفات تعريف الارتباط للإعلانات المخصّصة عبر <a href="https://www.aboutads.info/choices/" rel="noopener" target="_blank">www.aboutads.info</a>.</li>
 <li>لمعرفة المزيد عن طريقة استخدام Google للبيانات، راجع <a href="https://policies.google.com/technologies/partner-sites" rel="noopener" target="_blank">كيف تستخدم Google المعلومات من المواقع التي تستخدم خدماتها</a> و<a href="https://policies.google.com/technologies/ads" rel="noopener" target="_blank">طريقة استخدام Google للكوكيز في الإعلانات</a>.</li>
 <li>للزوار من المنطقة الاقتصادية الأوروبية والمملكة المتحدة وسويسرا: نطلب موافقتك قبل أن تستخدم Google الكوكيز في الإعلانات المخصّصة وفي الإحصاءات، كما تفرض القوانين هناك.</li>
+<li>ونعرض أيضاً إعلانات بانر من شبكة إعلانية تابعة لجهة خارجية تُحمَّل من النطاق js.mbidadm.com. قد تضع هذه الشبكة ملفات كوكيز وتستخدم التخزين المحلي في متصفحك، وتجمع معلومات تقنية عن جهازك ومتصفحك وعنوان IP الخاص بك، منها بصمة رقمية تُشتق من خصائص جهازك ومعرفة ما إذا كان متصفحك مسجَّل الدخول إلى بعض الخدمات، لعرض الإعلانات وقياسها ومنع الاحتيال، وفق سياسة الخصوصية الخاصة بها. ويمكنك منع هذه الإعلانات بأدوات حظر الإعلانات في متصفحك.</li>
 </ul>
 <h2>4. خدمات أطراف ثالثة أخرى</h2>
 <p>يحمّل متصفحك بعض المحتوى من خدمات خارجية، وتتلقى هذه الخدمات عنوان IP الخاص بك كما يحدث في أي طلب على الإنترنت:</p>
@@ -379,6 +380,7 @@ def _privacy(ui):
 <li>You may opt out of personalised advertising by visiting <a href="https://www.google.com/settings/ads" rel="noopener" target="_blank">Google Ads Settings</a>. You can also opt out of a third-party vendor's use of cookies for personalised advertising at <a href="https://www.aboutads.info/choices/" rel="noopener" target="_blank">www.aboutads.info</a>.</li>
 <li>To learn more, see <a href="https://policies.google.com/technologies/partner-sites" rel="noopener" target="_blank">how Google uses information from sites that use its services</a> and <a href="https://policies.google.com/technologies/ads" rel="noopener" target="_blank">how Google uses cookies in advertising</a>.</li>
 <li>Visitors from the European Economic Area, the United Kingdom and Switzerland are asked for consent before Google uses cookies for personalised ads and for statistics, as the law there requires.</li>
+<li>We also show banner ads from a third-party advertising network loaded from the js.mbidadm.com domain. This network may set cookies and use your browser's local storage, and it collects technical information about your device, your browser and your IP address, including a fingerprint derived from your device's characteristics and whether your browser is signed in to some services, to serve and measure ads and to prevent fraud, under its own privacy policy. You can block these ads with your browser's ad-blocking tools.</li>
 </ul>
 <h2>4. Other third-party services</h2>
 <p>Your browser loads some content from outside services, which receive your IP address as with any request on the Internet:</p>
@@ -430,7 +432,7 @@ def _terms(ui):
 <h2>7. بلاغات حقوق النشر</h2>
 <p>إن رأيت أن رابطاً في المكتبة يخالف حقوقك، <a href="{link("takedown", ui)}">املأ نموذج طلب الإزالة</a> واذكر اسم العمل ورابطه وصفتك، وسنراجع البلاغ ونزيل الرابط إن ثبتت المخالفة.</p>
 <h2>8. الإعلانات</h2>
-<p>يعرض الموقع إعلانات من Google وشركائها عبر Google AdSense. ظهور إعلان لا يعني أننا نؤيد المعلن أو منتجه، وأي تعامل بينك وبين المعلن شأن بينكما وحدكما.</p>
+<p>يعرض الموقع إعلانات من Google وشركائها عبر Google AdSense، وإعلانات بانر من شبكة إعلانية تابعة لجهة خارجية (js.mbidadm.com). ظهور إعلان لا يعني أننا نؤيد المعلن أو منتجه، وأي تعامل بينك وبين المعلن شأن بينكما وحدكما.</p>
 <h2>9. حدود المسؤولية</h2>
 <p>في أقصى حدّ يسمح به القانون، لا تتحمل مكتبة الوراق مسؤولية أي ضرر مباشر أو غير مباشر ينتج عن استخدامك للموقع أو للمواقع الخارجية التي يدلّك عليها.</p>
 <h2>10. التعديلات</h2>
@@ -461,7 +463,7 @@ def _terms(ui):
 <h2>7. Copyright reports</h2>
 <p>If you believe a link in the library infringes your rights, <a href="{link("takedown", ui)}">send a removal request</a> with the title of the work, its link and your capacity, and we will review the report and remove the link if it infringes.</p>
 <h2>8. Advertising</h2>
-<p>The site shows ads from Google and its partners through Google AdSense. An ad does not mean that we endorse the advertiser or the product, and any dealings between you and an advertiser are between you and the advertiser alone.</p>
+<p>The site shows ads from Google and its partners through Google AdSense, and banner ads from a third-party advertising network (js.mbidadm.com). An ad does not mean that we endorse the advertiser or the product, and any dealings between you and an advertiser are between you and the advertiser alone.</p>
 <h2>9. Limitation of liability</h2>
 <p>To the fullest extent permitted by law, Al-Warraq Library is not liable for any direct or indirect damage arising from your use of the site or of the external sites it points to.</p>
 <h2>10. Changes</h2>
