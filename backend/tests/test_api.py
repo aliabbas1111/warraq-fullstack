@@ -520,10 +520,11 @@ def test_counters_cannot_be_pumped(client):
     assert "spam phrase" in client.get("/api/stats").json()["top_searches"]
 
 
-def test_most_viewed_and_small_counts(client):
-    """The home page's "most viewed" lists only books with a description; views and likes show from 50 on."""
+def test_most_viewed_and_small_counts(client, monkeypatch):
+    """The home page's "most viewed" lists only books with a description (THIN_NOINDEX=1); views and likes show from 50 on."""
     import json as _json
     from app import db, main as m
+    monkeypatch.setenv("THIN_NOINDEX", "1")
     described = 1  # Hamlet, given a Gutenberg number and a description
     conn = db.connect()
     conn.execute("UPDATE books SET gid=1122 WHERE id=1")
@@ -1105,10 +1106,11 @@ def test_adsense_code_without_ad_units(client, monkeypatch):
 
 
 def test_thin_pages_stay_out_of_search_sitemaps_and_ads(client, monkeypatch, tmp_path):
-    """THIN_NOINDEX (on by default): a catalogue record with no words of its own is noindex, unlisted and ad-free;
+    """THIN_NOINDEX=1: a catalogue record with no words of its own is noindex, unlisted and ad-free;
     the library's own texts make a page whole: book texts, author biographies, category texts, articles."""
     import json as _json
     from app import content, db
+    monkeypatch.setenv("THIN_NOINDEX", "1")  # off by default for now
     d = tmp_path / "content"
     (d / "articles").mkdir(parents=True)
     conn = db.connect()
@@ -1177,9 +1179,10 @@ def test_thin_pages_stay_out_of_search_sitemaps_and_ads(client, monkeypatch, tmp
     assert "<script>alert" not in a and 'href="javascript' not in a
     assert '<link rel="canonical" href="http://testserver/articles/test-article">' in client.get("/articles/test-article?lang=en").text
     assert client.get("/articles/nope").status_code == 404 and 'href="/articles/test-article"' in client.get("/articles").text
-    # THIN_NOINDEX off: every book page indexed and with ads, as before
-    monkeypatch.setenv("THIN_NOINDEX", "0")
-    assert unit in client.get("/book/2", follow_redirects=True).text
+    # THIN_NOINDEX off (the default for now): every book page indexed and with ads, as before
+    monkeypatch.delenv("THIN_NOINDEX")
+    macbeth = client.get("/book/2", follow_redirects=True).text
+    assert unit in macbeth and 'name="robots" content="index,follow,max-image-preview:large"' in macbeth
 
 
 def test_takedown_requests(client):
@@ -1398,13 +1401,14 @@ def test_platform_address_goes_to_the_own_domain(client, monkeypatch):
     assert client.get("/robots.txt").status_code == 200  # another address (the test server's) is not the platform's
 
 
-def test_described_books_come_first(client):
+def test_described_books_come_first(client, monkeypatch):
     """Every list shows the books with a text of their own first (home, categories, authors, similar books, the list
     of the home page's script); the home page's HTML already holds the categories, the first described books and the
     authors with a biography; links to a book go to its own address, not to /book/<id>, which only redirects."""
     import json as _json
     import re as _re
     from app import content, db, main as m, pages, seo
+    monkeypatch.setenv("THIN_NOINDEX", "1")  # described = indexable only with the thin rule on
     conn = db.connect()
     late = conn.execute("SELECT id FROM books WHERE author_key='dostoevsky' ORDER BY ord DESC LIMIT 1").fetchone()["id"]
     other = conn.execute("SELECT id FROM books WHERE cat='dra' AND author_key!='shakespeare' ORDER BY ord DESC LIMIT 1").fetchone()["id"]

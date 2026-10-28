@@ -12,8 +12,9 @@ Beside "ar" and "en", each text may be written in the other interface languages 
 as is the book descriptions file app/data/book_descriptions.json); a language it lacks shows the English text.
 Paragraphs may hold **bold** and [links](/path) (site paths and https addresses only); everything else is text.
 
-A page whose own words are too few to stand on their own (a catalogue record) is "thin": with THIN_NOINDEX on
-(the default) it stays out of search results, the sitemap and ads until it gets a text of its own here.
+A page whose own words are too few to stand on their own (a catalogue record) is "thin": with THIN_NOINDEX=1 it
+stays out of search results, the sitemap and ads until it gets a text of its own here. It is off for now (every page
+open to search engines) and goes back on before the next AdSense review.
 """
 import json
 import os
@@ -26,7 +27,7 @@ _cache = {}  # file name -> (mtime, parsed)
 
 
 def thin_noindex() -> bool:
-    return os.environ.get("THIN_NOINDEX", "1").strip() != "0"
+    return os.environ.get("THIN_NOINDEX", "0").strip() == "1"  # off by default since 28 October 2026 (the owner's call)
 
 
 def text_ui(ui: str) -> str:
