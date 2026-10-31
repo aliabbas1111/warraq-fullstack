@@ -1486,11 +1486,12 @@ def test_described_books_come_first(client, monkeypatch):
 
 
 def test_audiobooks_data():
-    """The audiobooks file: a hundred books, each at its own address, its chapters on archive.org, and the library's own
+    """The audiobooks file: two hundred books, each at its own address, its chapters on archive.org, and the library's own
     words about it in the language it is read in (three are read in Arabic)."""
     from app import audiobooks
     items = audiobooks.books()
-    assert len(items) == 100 and len({b["slug"] for b in items}) == 100 and audiobooks.meta_count() == 100
+    assert len(items) == 200 and len({b["slug"] for b in items}) == 200 and len({b["ia"] for b in items}) == 200
+    assert audiobooks.meta_count() == 200
     assert {b["genre"] for b in items} <= set(audiobooks.GENRES) and sum(1 for b in items if b["lang"] == "ar") == 3
     for b in items:
         assert b["tracks"] and all(t[0] and t[1].endswith(".mp3") and t[2] > 0 for t in b["tracks"]), b["slug"]
@@ -1508,7 +1509,7 @@ def test_audiobook_pages(client, monkeypatch):
     library also has read aloud links to its audiobook, and the audiobook back to the text."""
     from app import audiobooks, db
     page = client.get("/audiobooks")
-    assert page.status_code == 200 and page.text.count('class="ab-card"') == 100 and 'id="arab"' in page.text
+    assert page.status_code == 200 and page.text.count('class="ab-card"') == 200 and 'id="arab"' in page.text
     assert "<h1>كتب صوتية مجانية</h1>" in page.text and "LibriVox" in page.text
     assert "<h1>Free audiobooks</h1>" in client.get("/audiobooks?lang=en").text
     kalila = audiobooks.book("kalila-wa-dimna")
@@ -1533,7 +1534,7 @@ def test_audiobook_pages(client, monkeypatch):
     home = client.get("/").text
     assert home.index('id="audio"') < home.index('id="popular"') and home.count('class="abs-it"') == 12
     assert home.index('data-cat="aud"') < home.index('class="cc" href="/category/') and 'href="/audiobooks"' in home
-    assert 'href="/audiobooks?lang=en"' in client.get("/?lang=en").text and client.get("/api/meta").json()["audiobooks"] == 100
+    assert 'href="/audiobooks?lang=en"' in client.get("/?lang=en").text and client.get("/api/meta").json()["audiobooks"] == 200
     assert 'href="/audiobooks">كتب صوتية</a>' in client.get("/category/nov").text
     main_map = client.get("/sitemap-main.xml").text
     assert "/audiobooks/kalila-wa-dimna</loc>" in main_map and "/audiobooks?lang=en</loc>" in main_map
