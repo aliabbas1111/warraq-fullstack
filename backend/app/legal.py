@@ -19,9 +19,10 @@ from urllib.parse import parse_qs
 from . import content, stats
 from .pages import BRAND, LEGAL, T, UI_LANGS, esc, lang_q
 
-# each page its own date: both changed when the site's Google AdSense ads came back
-UPDATED = {"privacy": {"ar": "24 أكتوبر 2026", "en": "24 October 2026", "zh": "2026年10月24日", "fr": "24 octobre 2026",
-                       "es": "24 de octubre de 2026", "pt": "24 de outubro de 2026", "ja": "2026年10月24日", "de": "24. Oktober 2026"},
+# each page its own date: the terms changed when the site's Google AdSense ads came back, the privacy policy when
+# the audiobooks came (31 October 2026: audio from the Internet Archive, the player's place kept in the browser)
+UPDATED = {"privacy": {"ar": "31 أكتوبر 2026", "en": "31 October 2026", "zh": "2026年10月31日", "fr": "31 octobre 2026",
+                       "es": "31 de octubre de 2026", "pt": "31 de outubro de 2026", "ja": "2026年10月31日", "de": "31. Oktober 2026"},
            "terms": {"ar": "24 أكتوبر 2026", "en": "24 October 2026", "zh": "2026年10月24日", "fr": "24 octobre 2026",
                      "es": "24 de octubre de 2026", "pt": "24 de outubro de 2026", "ja": "2026年10月24日", "de": "24. Oktober 2026"}}
 EMAIL_DEFAULT = "alwarraqibrary@gmail.com"  # the library's mailbox
@@ -341,6 +342,7 @@ def _privacy(ui):
 <ul>
 <li>الخطوط من Google Fonts.</li>
 <li>أغلفة الكتب من Open Library ومشروع غوتنبرغ وHathiTrust ومؤسسة هنداوي، ونبذ المؤلفين من ويكيبيديا في صفحات الكتب.</li>
+<li>الكتب الصوتية وأغلفتها تُشغَّل وتُحمَّل من أرشيف الإنترنت (archive.org). ويحفظ متصفحك في تخزينه المحلي الفصلَ والدقيقة اللذين توقفت عندهما في كل كتاب صوتي، لتتابع منهما في زيارتك التالية، ولا يُرسَل ذلك إلينا.</li>
 <li>روابط القراءة تنقلك إلى مواقع خارجية تحكمها سياسات الخصوصية الخاصة بها.</li>
 <li>عبارات البحث في مكتب البحوث يرسلها خادمنا إلى OpenAlex للعثور على الأوراق العلمية.</li>
 <li><b>Google Tag Manager:</b> خدمة من Google تحمّل في صفحاتنا أدوات Google المذكورة هنا، ولا تضع كوكيز خاصة بها.</li>
@@ -385,6 +387,7 @@ def _privacy(ui):
 <ul>
 <li>Fonts from Google Fonts.</li>
 <li>Book covers from Open Library, Project Gutenberg, HathiTrust and the Hindawi Foundation; author summaries from Wikipedia on book pages.</li>
+<li>Audiobooks and their covers are played and downloaded from the Internet Archive (archive.org). Your browser keeps, in its local storage, the chapter and minute where you stopped in each audiobook, so you can carry on next time; this is never sent to us.</li>
 <li>Reading links take you to external sites governed by their own privacy policies.</li>
 <li>Research-desk searches are sent by our server to OpenAlex to find papers.</li>
 <li><b>Google Tag Manager:</b> a Google service that loads the Google tools named here on our pages; it sets no cookies of its own.</li>

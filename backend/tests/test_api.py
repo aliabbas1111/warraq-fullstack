@@ -604,7 +604,7 @@ def test_pages_open_in_the_visitors_language(client):
     assert "set-cookie" not in client.get("/?lang=en", headers={"sec-fetch-site": "cross-site"}).headers
     client.cookies.clear()  # the test client kept that choice, as a browser would: start again without one
     privacy = client.get("/privacy").text  # and the privacy policy says so, dated
-    assert "warraq_lang" in privacy and "اختيارك للغة والمظهر" not in privacy and "آخر تحديث: 24 أكتوبر 2026" in privacy
+    assert "warraq_lang" in privacy and "اختيارك للغة والمظهر" not in privacy and "آخر تحديث: 31 أكتوبر 2026" in privacy and "archive.org" in privacy
     assert "<p>نعرض إعلانات من خلال Google AdSense" in privacy and "قد نعرض إعلانات" not in privacy
     assert "والبرتغالية واليابانية والألمانية" in privacy and "(ar أو en)" not in privacy  # the eight languages, dated
     en_privacy = client.get("/privacy?lang=en").text
@@ -665,7 +665,7 @@ def test_the_eight_languages(client):
     assert 'href="/takedown?lang=de&amp;u=' in de and '<meta property="og:locale" content="de_DE">' in de
     # the long legal texts are written in Arabic and English: the others show the English one, and say so
     es = client.get("/privacy?lang=es").text
-    assert "Última actualización: 24 de octubre de 2026" in es and legal.L["es"]["en_only"] in es and '<div lang="en">' in es
+    assert "Última actualización: 31 de octubre de 2026" in es and legal.L["es"]["en_only"] in es and '<div lang="en">' in es
     assert "Política de privacidad" in es and "Third-party vendors, including Google" in es
     ja = client.get("/contact?lang=ja").text
     assert "お名前" in ja and "一般的な質問" in ja and 'action="/contact?lang=ja"' in ja and legal.L["ja"]["en_only"] not in ja
@@ -1483,3 +1483,71 @@ def test_described_books_come_first(client, monkeypatch):
     assert 'data-i="legal1">روابط القراءة تقود' in home
     assert "مكتب البحوث" not in client.get("/about").text and "research desk" not in client.get("/about?lang=en").text
     conn.close()
+
+
+def test_audiobooks_data():
+    """The audiobooks file: a hundred books, each at its own address, its chapters on archive.org, and the library's own
+    words about it in the language it is read in (three are read in Arabic)."""
+    from app import audiobooks
+    items = audiobooks.books()
+    assert len(items) == 100 and len({b["slug"] for b in items}) == 100 and audiobooks.meta_count() == 100
+    assert {b["genre"] for b in items} <= set(audiobooks.GENRES) and sum(1 for b in items if b["lang"] == "ar") == 3
+    for b in items:
+        assert b["tracks"] and all(t[0] and t[1].endswith(".mp3") and t[2] > 0 for t in b["tracks"]), b["slug"]
+        assert b["zip"].startswith("https://archive.org/") and b["cover"].startswith("https://"), b["slug"]
+        own = b["about"][b["lang"]] + b["context"][b["lang"]]
+        assert 90 <= sum(len(p.split()) for p in own) <= 190, b["slug"]
+        assert sum(len(p.split()) for p in b["about"]["ar"]) >= 50, b["slug"]  # the Arabic pages have words of their own too
+        assert b["title_ar"] and b["author_ar"] and b["secs"] == sum(t[2] for t in b["tracks"]), b["slug"]
+
+
+def test_audiobook_pages(client, monkeypatch):
+    """/audiobooks lists them by kind; each book has a page with a player for its chapters (streamed from archive.org,
+    which its Content-Security-Policy lets in), its downloads and the library's words about it. The home page shows the
+    newest above "most viewed" and a card of their own first among the categories; the sitemap lists them; a book the
+    library also has read aloud links to its audiobook, and the audiobook back to the text."""
+    from app import audiobooks, db
+    page = client.get("/audiobooks")
+    assert page.status_code == 200 and page.text.count('class="ab-card"') == 100 and 'id="arab"' in page.text
+    assert "<h1>كتب صوتية مجانية</h1>" in page.text and "LibriVox" in page.text
+    assert "<h1>Free audiobooks</h1>" in client.get("/audiobooks?lang=en").text
+    kalila = audiobooks.book("kalila-wa-dimna")
+    r = client.get("/audiobooks/kalila-wa-dimna")
+    csp = r.headers["content-security-policy"]
+    nonce = csp.split("'nonce-")[1].split("'")[0]
+    assert r.status_code == 200 and "media-src https://archive.org https://*.archive.org" in csp
+    assert r.text.count("<script") == r.text.count('<script nonce="%s"' % nonce)  # the player runs, nothing else
+    assert '<audio id="abAudio" controls preload="none"' in r.text and r.text.count('class="trk"') == len(kalila["tracks"])
+    assert "<h1>كليلة ودمنة</h1>" in r.text and '"@type": "Audiobook"' in r.text and kalila["tracks"][3][0] in r.text
+    assert '<link rel="canonical" href="http://testserver/audiobooks/kalila-wa-dimna">' in r.text
+    assert 'href="%s"' % kalila["zip"].replace("&", "&amp;") in r.text and "adsbygoogle.js" in r.text
+    # an English recording opens in English for a crawler, in Arabic with its Arabic words, and elsewhere with the
+    # English words marked as English
+    en = client.get("/audiobooks/the-art-of-war", headers={"user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1)"}).text
+    assert '<html lang="en"' in en and "Lionel Giles" in en and "<h1>The Art of War</h1>" in en
+    ar = client.get("/audiobooks/the-art-of-war?lang=ar").text
+    assert "<h1>فن الحرب</h1>" in ar and "<p>ثلاثة عشر فصلاً قصيراً" in ar and 'lang="en"><p>' not in ar
+    fr = client.get("/audiobooks/the-art-of-war?lang=fr").text
+    assert '<div lang="en"><p>Thirteen short chapters' in fr and '<h1 lang="en">The Art of War</h1>' in fr
+    assert client.get("/audiobooks/nope").status_code == 404
+    home = client.get("/").text
+    assert home.index('id="audio"') < home.index('id="popular"') and home.count('class="abs-it"') == 12
+    assert home.index('data-cat="aud"') < home.index('class="cc" href="/category/') and 'href="/audiobooks"' in home
+    assert 'href="/audiobooks?lang=en"' in client.get("/?lang=en").text and client.get("/api/meta").json()["audiobooks"] == 100
+    assert 'href="/audiobooks">كتب صوتية</a>' in client.get("/category/nov").text
+    main_map = client.get("/sitemap-main.xml").text
+    assert "/audiobooks/kalila-wa-dimna</loc>" in main_map and "/audiobooks?lang=en</loc>" in main_map
+    conn = db.connect()
+    conn.execute("UPDATE books SET gid=1524 WHERE id=1")  # Hamlet, the text the Hamlet recording reads
+    conn.commit()
+    conn.close()
+    from app import pages
+    pages._cache.clear()  # the texts are looked up once when the server starts; the catalogue changed since
+    assert 'href="/audiobooks/hamlet?lang=en">Listen to the audiobook</a>' in client.get("/book/1", follow_redirects=True).text
+    assert 'href="/book/1/hamlet?lang=en">Read the text</a>' in client.get("/audiobooks/hamlet").text
+    assert 'href="/book/1/hamlet">اقرأ نص الكتاب</a>' in client.get("/audiobooks/hamlet?lang=ar").text
+    monkeypatch.setenv("ADS", "0")  # a test copy: no AdSense code, and the player still runs by its nonce
+    r = client.get("/audiobooks/the-art-of-war")
+    assert "adsbygoogle" not in r.text and "'strict-dynamic'" not in r.headers["content-security-policy"]
+    assert "media-src https://archive.org" in r.headers["content-security-policy"] and "<script nonce=" in r.text
+

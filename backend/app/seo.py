@@ -15,7 +15,7 @@ import sys
 import urllib.request
 from urllib.parse import quote
 
-from . import content, legal, modern
+from . import audiobooks, content, legal, modern
 from .wikisource import WS_KIND
 from .catalog import ARABIC_CAT, CATEGORIES
 from .pages import (ARTICLES_NAME, BRAND, CSS, LOGO_SVG, OG_LOCALE, SEARCH_ICON, T, UI_LANG_SHORT, UI_LANGS,
@@ -330,6 +330,12 @@ def _home_lists(conn, meta: dict, frontend_dir: str, ui: str, books: bool = True
            esc(c[ui]), esc(_tr(t, "n_books", c["count"]) + (" · " + _tr(t, "n_poems", c["poems"]) if c["poems"] else "")
                            if c["count"] else _tr(t, "n_poems", c["poems"])))
         for i, c in enumerate(cats))
+    n_audio = audiobooks.meta_count()
+    if n_audio:  # the audiobooks are a category of their own, first among the cards (app.js draws it the same way)
+        cards = ('<a class="cc" href="/audiobooks%s" data-cat="aud" style="--h:%d;--i:0"><span class="cci">'
+                 '<svg class="ic ic-aud" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="%s"/></svg>'
+                 '</span><b>%s</b><small>%s</small></a>'
+                 % (q, audiobooks.HUE, icons.get("aud", ""), esc(t.get("ab_cat", "")), esc(_tr(t, "ab_n", n_audio)))) + cards
     authors = _authors(conn)
     shelf = "".join(_book_card(r, ui, t, authors) for r in described_books(conn)[:HOME_BOOKS]) if books else ""
     people = []
@@ -388,10 +394,13 @@ def home_html(frontend_dir: str, base: str, ui: str = "ar", nonce: str = "", sea
         ]}),
     ])
     links = " ".join('<a href="/category/%s%s">%s</a>' % (k, lang_q(ui), esc(v[ui])) for k, v in CATEGORIES.items())
+    if audiobooks.meta_count():
+        links = '<a href="/audiobooks%s">%s</a> ' % (lang_q(ui), esc(audiobooks.S[ui]["name"])) + links
     # a search (/?q=) shows its own results: the first books would only be replaced by them
     lists = _home_lists(conn, meta, frontend_dir, ui, books=not search) if conn is not None and meta else {}
     page = (_home_template(frontend_dir, ui).replace("<!--SEO:HEAD-->", head).replace("<!--SEO:BODY-->", gtm_noscript()).replace("<!--SEO:CATS-->", links)
-            .replace("<!--SEO:INTRO-->", _home_intro(ui)).replace("<!--SEO:CATGRID-->", lists.get("cats", ""))
+            .replace("<!--SEO:INTRO-->", _home_intro(ui)).replace("<!--SEO:AUDIO-->", audiobooks.home_strip(ui))
+            .replace("<!--SEO:CATGRID-->", lists.get("cats", ""))
             .replace("<!--SEO:BOOKS-->", lists.get("books", "")).replace("<!--SEO:AUTHORS-->", lists.get("authors", "")))
     if search:  # /?q=...: the same page showing search results, not a page of its own for search engines
         page = page.replace('<meta name="robots" content="index,follow">', '<meta name="robots" content="noindex,follow">', 1)
@@ -401,7 +410,7 @@ def home_html(frontend_dir: str, base: str, ui: str = "ar", nonce: str = "", sea
 # ---------- category and author pages (plain HTML: every crawler can read and follow them) ----------
 
 def _shell(ui, base, path, title, desc, body, ld, page=1, extra_q="", extra_css="", nonce="", robots="", canonical="",
-           alternates=True):
+           alternates=True, ads=True):
     t = T[ui]
     canon = base + path + "?" + "&".join(x for x in (lang_q(ui)[1:], ("page=%d" % page if page > 1 else "")) if x)
     canon = canonical or canon.rstrip("?")
@@ -448,7 +457,7 @@ def _shell(ui, base, path, title, desc, body, ld, page=1, extra_q="", extra_css=
            brand=esc(BRAND[ui]), base=esc(base), ld=ld, css=CSS, extra=EXTRA_CSS + extra_css, logo=LOGO_SVG, icon=SEARCH_ICON,
            ph=esc(t["ph"]), search=esc(t["search"]), all=esc(t["all"]), menu=lang_menu(ui, lambda c: path + "?lang=" + c),
            body=body,
-           note=esc(t["note"]), legal=legal_links(ui), adsense=site_head(), gtm_ns=gtm_noscript(), ad_head=ad_head() if nonce else "")
+           note=esc(t["note"]), legal=legal_links(ui), adsense=site_head(), gtm_ns=gtm_noscript(), ad_head=ad_head() if nonce and ads else "")
 
 
 def _book_list(conn, rows, ui) -> str:
@@ -500,6 +509,8 @@ def category_page(conn, key: str, base: str, ui: str = "ar", page: int = 1, nonc
     desc = s["cat_d"].format(n=n, c=name)
     chips = "".join('<a href="/category/%s%s"%s>%s</a>' % (k, lang_q(ui), ' aria-current="page"' if k == key else "", esc(v[ui]))
                     for k, v in CATEGORIES.items())
+    if audiobooks.meta_count():
+        chips += '<a href="/audiobooks%s">%s</a>' % (lang_q(ui), esc(audiobooks.S[ui]["name"]))
     body = ('<p class="crumbs"><a href="/">%s</a> / %s</p><h1>%s</h1><p class="desc">%s <a href="/?cat=%s#browse">%s</a></p>'
             '<nav class="chips" aria-label="%s">%s</nav>%s%s%s'
             % (esc(T[ui]["home"]), esc(name), esc(s["cat_h"].format(c=name)), esc(desc), key, esc(s["open"]), esc(s["cats"]), chips,
@@ -649,6 +660,7 @@ def main_urls(conn, base: str):
             urls += [base + "/" + p + lang_q(ui) for ui in UI_LANGS]
     urls.append(base + "/articles")
     urls += [base + "/articles/" + a["slug"] for a in content.articles()]
+    urls += audiobooks.main_urls(base)
     for k in CATEGORIES:
         urls += [base + "/category/" + k + lang_q(ui) for ui in UI_LANGS]
     for r in conn.execute("SELECT key FROM authors a WHERE EXISTS (SELECT 1 FROM books WHERE author_key=a.key) ORDER BY ord"):

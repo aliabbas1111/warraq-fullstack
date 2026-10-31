@@ -18,7 +18,7 @@ from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from urllib.parse import quote, unquote, urlsplit
 
-from . import content, covers, db, legal, modern, pages, ranking, research, security, seo, stats, wikisource
+from . import audiobooks, content, covers, db, legal, modern, pages, ranking, research, security, seo, stats, wikisource
 from .catalog import ARABIC_CAT, CATEGORIES
 from .textnorm import norm
 
@@ -114,6 +114,7 @@ def create_app() -> FastAPI:
         db.seed_curated(conn)
         db.prune_unreadable(conn)
         pages.described_books(conn)  # read once now, not on the first visitor's page
+        audiobooks.texts(conn)  # the same for the texts the audiobooks read
         home_meta(conn)
         conn.close()
         yield
@@ -226,7 +227,8 @@ def create_app() -> FastAPI:
         poem_total = conn.execute("SELECT COUNT(*) FROM books WHERE curated=? AND cat='poe'", (wikisource.WS_KIND,)).fetchone()[0]
         # every language is counted; the filter menu only lists the 80 biggest
         return {"total": total, "author_total": db.author_total(conn, total), "categories": cats, "authors": authors,
-                "lang_total": len(languages), "languages": languages[:80], "poets": poets, "poem_total": poem_total}
+                "lang_total": len(languages), "languages": languages[:80], "poets": poets, "poem_total": poem_total,
+                "audiobooks": audiobooks.meta_count()}
 
     @app.get("/api/books")
     def books(
@@ -537,6 +539,24 @@ def create_app() -> FastAPI:
         if not body:
             return HTMLResponse(pages.not_found_html(ui), status_code=404)
         return HTMLResponse(body, headers=_ad_headers(nonce))
+
+    # ---------- the audiobooks (audiobooks.py) ----------
+    @app.get("/audiobooks", include_in_schema=False)
+    def audiobook_list(request: Request, lang: str = Query("", max_length=5)):
+        nonce = _ad_nonce()
+        return HTMLResponse(audiobooks.listing_page(pages.site_base(request), pages.visitor_ui(request, lang), nonce),
+                            headers=_ad_headers(nonce))
+
+    @app.get("/audiobooks/{slug}", include_in_schema=False)
+    def audiobook(slug: str, request: Request, lang: str = Query("", max_length=5), conn=Depends(get_conn)):
+        b = audiobooks.book(slug)
+        ui = pages.visitor_ui(request, lang, audiobooks.default_ui(b) if b else "ar")
+        if not b:
+            return HTMLResponse(pages.not_found_html(ui), status_code=404)
+        nonce = secrets.token_urlsafe(16)  # the player runs with or without the ads
+        ads = pages.ads_on()
+        return HTMLResponse(audiobooks.book_page(conn, b, pages.site_base(request), ui, nonce, ads),
+                            headers={"Content-Security-Policy": (security.AUDIO_AD_CSP if ads else security.AUDIO_CSP).format(nonce=nonce)})
 
     @app.get("/admin/messages", include_in_schema=False)
     def admin_messages(request: Request, conn=Depends(get_conn)):

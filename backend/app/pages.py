@@ -994,6 +994,10 @@ def render_book(conn, row, base: str, ui: str = "", numbers=(0, 0), liked: bool 
 
     btns = '<a class="btn" href="%s" target="_blank" rel="nofollow noopener">%s</a>' % (esc(main_url), esc(read_label(row, ui, direct)))
     btns += "".join('<a class="btn alt" href="%s" target="_blank" rel="nofollow noopener">%s</a>' % (esc(u), esc(n)) for u, n in extra)
+    from . import audiobooks  # here, not at the top: that module imports this one
+    heard = audiobooks.by_gid(row["gid"])
+    if heard:  # the same text read aloud in the library's audiobooks
+        btns += '<a class="btn alt" href="%s%s">%s</a>' % (esc(audiobooks.path(heard)), lang_q(ui), esc(audiobooks.S[ui]["listen_book"]))
 
     msg = t["share_txt"].format(t=title)
     share = ('<div class="share"><span>%s</span>'

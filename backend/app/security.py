@@ -47,6 +47,11 @@ AD_CSP = ("default-src 'self'; script-src 'nonce-{nonce}' 'strict-dynamic' 'unsa
           "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; "
           "img-src 'self' data: https:; connect-src 'self' https:; frame-src https:; "
           "object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'")
+# Audiobook pages play and save their chapters straight from the Internet Archive (archive.org answers from the
+# addresses of its many servers, ia800....us.archive.org): media from there, and fetches for a chapter's download.
+ARCHIVE = "https://archive.org https://*.archive.org"
+AUDIO_CSP = BOOK_CSP.replace("connect-src 'self'", "connect-src 'self' " + ARCHIVE, 1) + "; media-src " + ARCHIVE
+AUDIO_AD_CSP = AD_CSP + "; media-src " + ARCHIVE
 NO_CSP = ("/docs", "/redoc", "/openapi.json")  # FastAPI's interactive docs load their own scripts
 
 

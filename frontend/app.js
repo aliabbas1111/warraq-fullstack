@@ -13,6 +13,7 @@
             theme: 'تبديل المظهر',
             nav_browse: 'الكتب',
             nav_poetry: 'الشعر',
+            nav_audio: 'كتب صوتية',
             nav_authors: 'المؤلفون',
             nav_research: 'البحوث',
             ph: 'ابحث بعنوان كتاب أو اسم مؤلف',
@@ -52,6 +53,8 @@
             v_year: 'زائر هذه السنة',
             n_books: '{n} كتاب',
             n_poems: '{n} قصيدة',
+            ab_cat: 'كتب صوتية',
+            ab_n: '{n} كتاب صوتي',
             results_mix: '{b} كتاب و{p} قصيدة',
             f_lang: 'لغة الكتاب',
             f_org: 'الأصل',
@@ -119,6 +122,7 @@
             theme: 'Toggle theme',
             nav_browse: 'Books',
             nav_poetry: 'Poetry',
+            nav_audio: 'Audiobooks',
             nav_authors: 'Authors',
             nav_research: 'Research',
             ph: 'Search a title or an author',
@@ -158,6 +162,8 @@
             v_year: 'visitors this year',
             n_books: '{n} books',
             n_poems: '{n} poems',
+            ab_cat: 'Audiobooks',
+            ab_n: '{n} audiobooks',
             results_mix: '{b} books and {p} poems',
             f_lang: 'Book language',
             f_org: 'Origin',
@@ -225,6 +231,7 @@
             theme: '切换主题',
             nav_browse: '图书',
             nav_poetry: '诗歌',
+            nav_audio: '有声书',
             nav_authors: '作者',
             nav_research: '研究',
             ph: '搜索书名或作者',
@@ -264,6 +271,8 @@
             v_year: '今年访客',
             n_books: '{n} 本图书',
             n_poems: '{n} 首诗',
+            ab_cat: '有声书',
+            ab_n: '{n} 部有声书',
             results_mix: '{b} 本图书和 {p} 首诗',
             f_lang: '图书语言',
             f_org: '起源',
@@ -331,6 +340,7 @@
             theme: 'Changer de thème',
             nav_browse: 'Livres',
             nav_poetry: 'Poésie',
+            nav_audio: 'Livres audio',
             nav_authors: 'Auteurs',
             nav_research: 'Recherche',
             ph: 'Rechercher un titre ou un auteur',
@@ -370,6 +380,8 @@
             v_year: 'visiteurs cette année',
             n_books: '{n} livres',
             n_poems: '{n} poèmes',
+            ab_cat: 'Livres audio',
+            ab_n: '{n} livres audio',
             results_mix: '{b} livres et {p} poèmes',
             f_lang: 'Langue du livre',
             f_org: 'Origine',
@@ -437,6 +449,7 @@
             theme: 'Cambiar tema',
             nav_browse: 'Libros',
             nav_poetry: 'Poesía',
+            nav_audio: 'Audiolibros',
             nav_authors: 'Autores',
             nav_research: 'Investigación',
             ph: 'Busca un título o un autor',
@@ -476,6 +489,8 @@
             v_year: 'visitantes este año',
             n_books: '{n} libros',
             n_poems: '{n} poemas',
+            ab_cat: 'Audiolibros',
+            ab_n: '{n} audiolibros',
             results_mix: '{b} libros y {p} poemas',
             f_lang: 'Idioma del libro',
             f_org: 'Origen',
@@ -543,6 +558,7 @@
             theme: 'Mudar tema',
             nav_browse: 'Livros',
             nav_poetry: 'Poesia',
+            nav_audio: 'Audiolivros',
             nav_authors: 'Autores',
             nav_research: 'Pesquisa',
             ph: 'Pesquise um título ou um autor',
@@ -582,6 +598,8 @@
             v_year: 'visitantes este ano',
             n_books: '{n} livros',
             n_poems: '{n} poemas',
+            ab_cat: 'Audiolivros',
+            ab_n: '{n} audiolivros',
             results_mix: '{b} livros e {p} poemas',
             f_lang: 'Idioma do livro',
             f_org: 'Origem',
@@ -649,6 +667,7 @@
             theme: 'テーマを切り替える',
             nav_browse: '本',
             nav_poetry: '詩',
+            nav_audio: 'オーディオブック',
             nav_authors: '著者',
             nav_research: '研究',
             ph: '書名や著者名で検索',
@@ -688,6 +707,8 @@
             v_year: '今年の訪問者',
             n_books: '{n}冊',
             n_poems: '{n}篇の詩',
+            ab_cat: 'オーディオブック',
+            ab_n: '{n}冊のオーディオブック',
             results_mix: '{b}冊の本と{p}篇の詩',
             f_lang: '本の言語',
             f_org: '由来',
@@ -755,6 +776,7 @@
             theme: 'Design wechseln',
             nav_browse: 'Bücher',
             nav_poetry: 'Lyrik',
+            nav_audio: 'Hörbücher',
             nav_authors: 'Autoren',
             nav_research: 'Forschung',
             ph: 'Titel oder Autor suchen',
@@ -794,6 +816,8 @@
             v_year: 'Besucher dieses Jahr',
             n_books: '{n} Bücher',
             n_poems: '{n} Gedichte',
+            ab_cat: 'Hörbücher',
+            ab_n: '{n} Hörbücher',
             results_mix: '{b} Bücher und {p} Gedichte',
             f_lang: 'Sprache des Buches',
             f_org: 'Herkunft',
@@ -879,6 +903,7 @@
     ];
 
     const ICONS = {
+        aud: 'M4 15v-3a8 8 0 0 1 16 0v3 M4 15a2 2 0 0 1 2-2h1v7H6a2 2 0 0 1-2-2z M20 15a2 2 0 0 0-2-2h-1v7h1a2 2 0 0 0 2-2z',
         nov: 'M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z M8 7h7 M8 11h5',
         poe: 'M20.2 3.8C13 4 8 9 8 15v2h2c6 0 10.5-5 10.2-13.2z M4 21l6-6',
         dra: 'M3 4h18 M5 4v16 M19 4v16 M5 8c4 0 5 4 7 4s3-4 7-4',
@@ -1230,10 +1255,17 @@
         else countUp(el);
     }
 
+    const AUDIO_HUE = 274; // the audiobooks' card (audiobooks.HUE on the server)
+
+    function audioCard() { // the audiobooks: a category of their own, first among the cards
+        const n = S.meta && S.meta.audiobooks;
+        return n ? '<a class="cc" href="/audiobooks' + langQ() + '" data-cat="aud" style="--h:' + AUDIO_HUE + ';--i:0"><span class="cci">' + ico('aud', 26) + '</span><b>' + esc(tr('ab_cat')) + '</b><small>' + esc(tr('ab_n', { n: fmt(n) })) + '</small></a>' : '';
+    }
+
     function renderCats() {
         const el = $('#catGrid');
         if (!el || !S.meta) return;
-        el.innerHTML = S.meta.categories.filter((c) => c.count + (c.poems || 0) > 0).map((c, i) =>
+        el.innerHTML = audioCard() + S.meta.categories.filter((c) => c.count + (c.poems || 0) > 0).map((c, i) =>
             '<a class="cc" href="/category/' + esc(c.key) + langQ() + '" data-cat="' + esc(c.key) + '" style="--h:' + num(c.hue) + ';--i:' + i + '"><span class="cci">' + ico(c.key, 26) + '</span><b>' + esc(inUi(c)) + '</b><small>' + esc(c.count ? tr('n_books', { n: fmt(c.count) }) + (c.poems ? ' · ' + tr('n_poems', { n: fmt(c.poems) }) : '') : tr('n_poems', { n: fmt(c.poems) })) + '</small></a>').join('');
         renderFootCats();
     }
@@ -1241,7 +1273,8 @@
     function renderFootCats() {
         const el = $('#footCats');
         if (!el || !S.meta) return;
-        el.innerHTML = S.meta.categories.map((c) => '<a href="/category/' + esc(c.key) + langQ() + '">' + esc(inUi(c)) + '</a>').join('');
+        el.innerHTML = (S.meta.audiobooks ? '<a href="/audiobooks' + langQ() + '">' + esc(tr('ab_cat')) + '</a>' : '') +
+            S.meta.categories.map((c) => '<a href="/category/' + esc(c.key) + langQ() + '">' + esc(inUi(c)) + '</a>').join('');
     }
 
     function renderPopular() {
