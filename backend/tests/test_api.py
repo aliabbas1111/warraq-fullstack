@@ -521,7 +521,7 @@ def test_counters_cannot_be_pumped(client):
 
 
 def test_most_viewed_and_small_counts(client, monkeypatch):
-    """The home page's "most viewed" lists only books with a description (THIN_NOINDEX=1); views and likes show from 50 on."""
+    """The home page's "most viewed" lists only books with a description (THIN_NOINDEX=1); views and likes show from the first."""
     import json as _json
     from app import db, main as m
     monkeypatch.setenv("THIN_NOINDEX", "1")
@@ -539,9 +539,9 @@ def test_most_viewed_and_small_counts(client, monkeypatch):
     client.get("/book/%d" % bare, follow_redirects=True, headers={"user-agent": "Mozilla/5.0 four"})  # viewed most, no description
     m._meta_cache.clear()
     top = client.get("/api/stats").json()["top_books"]
-    assert [b["id"] for b in top] == [described] and top[0]["views"] is None  # 3 views: counted, not shown
+    assert [b["id"] for b in top] == [described] and top[0]["views"] == 3 and top[0]["likes"] is None  # no like yet
     page = client.get("/book/%d" % described, follow_redirects=True).text
-    assert '<span class="num">' not in page and '<span id="likeC" hidden> · <b id="likeN"></b></span>' in page
+    assert '<span class="num">' in page and '<span id="likeC" hidden> · <b id="likeN"></b></span>' in page
     assert "interactionStatistic" not in page
     conn = db.connect()
     conn.execute("UPDATE book_stats SET views=50, likes=50 WHERE book_id=?", (described,))

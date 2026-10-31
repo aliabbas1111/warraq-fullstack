@@ -14,7 +14,7 @@ from .textnorm import norm
 BOT = re.compile(r"bot|crawl|spider|slurp|bing|facebookexternalhit|preview|monitor|uptime|curl|wget|python-requests|headless", re.I)
 KEEP_DAYS = 3
 MIN_SEARCHERS = 3  # a search is shown on the home page only once this many different people made it
-SHOW_MIN = 50  # a book's views or likes are shown to visitors only from this many ("3 views" makes a page look empty)
+SHOW_MIN = 1  # a book's views or likes are shown to visitors from this many (it was 50 from 26 to 31 October 2026)
 # Days, months and years start at midnight of this time zone (hours from UTC; 3 = Baghdad, Riyadh, Kuwait)
 UTC_OFFSET = float(os.environ.get("STATS_UTC_OFFSET", "3"))
 

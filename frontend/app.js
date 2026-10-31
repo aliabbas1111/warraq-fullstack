@@ -1235,7 +1235,7 @@
                 countUp(e.target); } });
     }) : null;
 
-    const SHOW_VISITS = false; // the visitors box (today / month / year) is off for now; visitors are still counted
+    const SHOW_VISITS = true; // the visitors box (today / month / year); false hides it, and visitors are still counted
 
     function renderLive() {
         const el = $('#visits');
